@@ -13,8 +13,16 @@ from dotenv import load_dotenv
 
 from .citation_formatter import CitationFormatter
 from .export import Exporter
-from .llm_synthesis import DEFAULT_MODEL, LLMSynthesizer
-from .outline_generator import OutlineGenerator
+from .llm_synthesis import (
+    DEFAULT_MODEL,
+    PLACEHOLDER_PATTERN,
+    LLMSynthesizer,
+    OllamaConnectionError,
+    PaperSummary,
+    content_issue,
+    sources_block,
+)
+from .outline_generator import Outline, OutlineGenerator
 from .paper_discovery import PaperDiscovery
 from .text_extraction import TextExtractor
 
@@ -43,7 +51,9 @@ def parse_args(argv=None) -> argparse.Namespace:
     parser.add_argument("--formats", default="md", help="Comma-separated export formats: md, docx, pdf")
     parser.add_argument("--output-dir", default="output", help="Directory to write exported files to")
     parser.add_argument("--data-dir", default="data", help="Directory for cached downloads (e.g. PDFs)")
-    parser.add_argument("--model", default=DEFAULT_MODEL, help="Anthropic model to use for synthesis")
+    parser.add_argument(
+        "--model", default=DEFAULT_MODEL, help="Ollama model to use for synthesis (e.g. tinyllama, phi)"
+    )
     return parser.parse_args(argv)
 
 
@@ -52,6 +62,58 @@ def slugify(text: str) -> str:
     while "--" in slug:
         slug = slug.replace("--", "-")
     return slug.strip("-")[:60] or "report"
+
+
+def check_content_quality(
+    outline: Outline, synthesis: str, research_gaps: str, summaries: list[PaperSummary]
+) -> list[str]:
+    """Logs which parts of the report are weak before export; returns the warnings.
+
+    Doesn't block export: paper-derived fallback content is still real content, but the user should
+    know which sections the model failed to write (a larger model, e.g. --model phi, usually helps).
+    """
+    warnings: list[str] = []
+    sources = sources_block(summaries)
+
+    for section in outline.sections:
+        if section.origin == "gaps":
+            continue  # names of the research gaps, which are checked in full below
+        if section.origin == "fallback":
+            # Extracted from the papers by construction, so the grounding check doesn't apply.
+            warnings.append(
+                f"Outline section {section.heading!r} was built from paper abstracts (model output rejected)"
+            )
+            continue
+        problem = content_issue("\n".join(section.points), min_sentences=2, min_words=15, source=sources)
+        if problem:
+            warnings.append(f"Outline section {section.heading!r} is weak: {problem}")
+
+    # Research gaps describe what the papers *don't* cover, so their vocabulary naturally differs from
+    # the sources; model-written gaps were already grounding-checked when generated.
+    for label, text, min_sentences, source in (
+        ("Literature synthesis", synthesis, 4, f"{sources}\n{synthesis}"),
+        ("Research gaps", research_gaps, 2, None),
+    ):
+        problem = content_issue(text, min_sentences=min_sentences, min_words=20, source=source)
+        if problem:
+            warnings.append(f"{label} is weak: {problem}")
+
+    for s in summaries:
+        if not s.from_llm:
+            warnings.append(f"Summary of {s.paper.title[:60]!r} was taken from its abstract (model output rejected)")
+        elif PLACEHOLDER_PATTERN.search(s.summary):
+            warnings.append(f"Summary of {s.paper.title[:60]!r} contains placeholder text")
+
+    model_sections = sum(1 for s in outline.sections if s.origin != "fallback")
+    logger.info(
+        "Content check: %d/%d outline sections written by the model, %d/%d summaries model-written",
+        model_sections, len(outline.sections), sum(s.from_llm for s in summaries), len(summaries),
+    )
+    for warning in warnings:
+        logger.warning("Low-quality content: %s", warning)
+    if not warnings:
+        logger.info("Content check passed: every section has real, non-placeholder content")
+    return warnings
 
 
 def run(args: argparse.Namespace) -> list[Path]:
@@ -70,24 +132,29 @@ def run(args: argparse.Namespace) -> list[Path]:
     logger.info("Found %d papers", len(papers))
 
     extractor = TextExtractor(cache_dir=Path(args.data_dir) / "pdf_cache")
-    synthesizer = LLMSynthesizer(model=args.model)
 
-    logger.info("Summarizing papers...")
-    summaries = synthesizer.summarize_all(papers, extractor)
-    logger.info("Summarized %d/%d papers", len(summaries), len(papers))
-    if not summaries:
-        logger.error("Could not summarize any papers; aborting.")
-        sys.exit(1)
+    # The Ollama model is only loaded into RAM for the duration of this block: entering the
+    # context pulls it in (lazily, on first request) and exiting unloads it immediately rather
+    # than leaving it resident for Ollama's default keep-alive window.
+    with LLMSynthesizer(model=args.model) as synthesizer:
+        logger.info("Summarizing papers...")
+        summaries = synthesizer.summarize_all(papers, extractor)
+        logger.info("Summarized %d/%d papers", len(summaries), len(papers))
+        if not summaries:
+            logger.error("Could not summarize any papers; aborting.")
+            sys.exit(1)
 
-    logger.info("Synthesizing literature review...")
-    synthesis = synthesizer.synthesize_literature(topic, summaries)
+        logger.info("Synthesizing literature review...")
+        synthesis = synthesizer.synthesize_literature(topic, summaries)
 
-    logger.info("Identifying research gaps...")
-    research_gaps = synthesizer.generate_research_gaps(topic, synthesis)
+        logger.info("Identifying research gaps...")
+        research_gaps = synthesizer.generate_research_gaps(topic, synthesis, summaries)
 
-    logger.info("Generating outline...")
-    outline_generator = OutlineGenerator(synthesizer)
-    outline = outline_generator.generate_outline(topic, synthesis, research_gaps)
+        logger.info("Generating outline...")
+        outline_generator = OutlineGenerator(synthesizer)
+        outline = outline_generator.generate_outline(topic, synthesis, research_gaps, summaries)
+
+    check_content_quality(outline, synthesis, research_gaps, summaries)
 
     logger.info("Formatting bibliography (%s)...", args.citation_style)
     citation_formatter = CitationFormatter()
@@ -104,13 +171,7 @@ def run(args: argparse.Namespace) -> list[Path]:
     )
 
     slug = slugify(topic)
-    exported_paths: list[Path] = []
-    if "md" in formats:
-        exported_paths.append(exporter.export_markdown(report_md, f"{slug}.md"))
-    if "docx" in formats:
-        exported_paths.append(exporter.export_docx(report_md, f"{slug}.docx"))
-    if "pdf" in formats:
-        exported_paths.append(exporter.export_pdf(report_md, f"{slug}.pdf"))
+    exported_paths = exporter.export_all(report_md, slug, formats)
 
     for path in exported_paths:
         logger.info("Exported: %s", path)
@@ -125,7 +186,7 @@ def main(argv=None) -> None:
     except KeyboardInterrupt:
         logger.info("Interrupted by user")
         sys.exit(130)
-    except ValueError as exc:
+    except (ValueError, OllamaConnectionError) as exc:
         logger.error("Configuration error: %s", exc)
         sys.exit(1)
     except Exception as exc:
