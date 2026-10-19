@@ -1,4 +1,8 @@
-"""Generates a structured research paper outline from a topic and literature synthesis.
+"""Generates the model-written sections of a literature review from a topic and literature synthesis.
+
+The user picks which report sections to generate (REPORT_SECTIONS). The Literature Review section is
+the literature synthesis itself and Results is built from the papers' metadata, so only Introduction,
+Methodology (study designs), Discussion and Conclusion are written here.
 
 The model is first asked for a whole outline as JSON. Small models often return truncated or
 malformed JSON, or fill it with placeholder text, so the draft is parsed leniently and every
@@ -29,8 +33,6 @@ from .llm_synthesis import (
     join_items,
     method_profile,
     normalize_whitespace,
-    paper_focus,
-    parse_gaps,
     pick_sentences,
     shared_themes,
     sources_block,
@@ -41,56 +43,58 @@ from .llm_synthesis import (
 logger = logging.getLogger(__name__)
 
 
+# Report sections the user can choose from (--sections), in report order: key -> heading.
+REPORT_SECTIONS = {
+    "introduction": "Introduction",
+    "literature-review": "Literature Review",
+    "methodology": "Methodology",
+    "results": "Results",
+    "discussion": "Discussion",
+    "conclusion": "Conclusion",
+}
+
+
 @dataclass(frozen=True)
 class SectionSpec:
+    key: str  # REPORT_SECTIONS key
     heading: str
     keywords: Tuple[str, ...]  # matched against model-supplied headings to map them onto this section
-    instruction: str  # section-specific writing task; {topic} is filled in
+    instruction: str  # section-specific writing task; {topic} and {review} (e.g. "systematic review") are filled in
 
 
 SECTION_SPECS = [
     SectionSpec(
+        "introduction",
         "Introduction",
         ("intro", "background", "overview"),
-        "Write the Introduction in about 100 words (3-4 sentences): explain what {topic} is, why it "
-        "matters, and which questions the papers above investigate.",
+        "Write the Introduction of this {review} in about 120 words (4-5 sentences): explain what {topic} "
+        "is, why it matters, which questions the papers above investigate, and what this {review} sets "
+        "out to examine.",
     ),
     SectionSpec(
-        "Literature Review",
-        ("literature", "review", "related"),
-        "Write the Literature Review in about 120 words (3-5 sentences), organized by theme rather "
-        "than paper by paper: which themes the papers above share and how their perspectives differ. "
-        "Name each paper by its (Author, Year) tag. Use your own words, do not copy sentences.",
-    ),
-    SectionSpec(
+        "methodology",
         "Methodology",
         ("method", "approach", "design", "data"),
-        "Write the Methodology section in about 100 words (3-4 sentences): compare how the papers "
-        "above do their research (e.g. surveys, experiments, case studies, conceptual frameworks), what "
-        "evidence they rely on, and how these approaches differ in strength. Cite (Author, Year). Use "
-        "your own words, do not copy sentences.",
+        "Write about 100 words (3-4 sentences) comparing how the papers above do their research (e.g. "
+        "surveys, experiments, case studies, conceptual frameworks), what evidence they rely on, and how "
+        "these approaches differ in strength. Cite (Author, Year). Use your own words, do not copy sentences.",
     ),
     SectionSpec(
-        "Discussion/Findings",
+        "discussion",
+        "Discussion",
         ("discussion", "finding", "result", "analysis"),
-        "Write the Discussion/Findings section in about 100 words (3-4 sentences): explain what the "
+        "Write the Discussion of this {review} in about 120 words (4-5 sentences): explain what the "
         "papers above show when read together, where their findings agree or disagree, and what that "
         "means for {topic}. Cite (Author, Year). Use your own words, do not copy sentences.",
     ),
     SectionSpec(
-        "Research Gaps & Future Work",
-        ("gap", "future", "open", "limitation"),
-        "Write the Research Gaps & Future Work section: list 3 specific open problems in {topic} "
-        "suggested by the papers above, each as one full sentence on its own line starting with '- '.",
-    ),
-    SectionSpec(
+        "conclusion",
         "Conclusion",
         ("conclu", "summary", "final"),
-        "Write the Conclusion in about 80 words (3 sentences): summarize what the papers above "
-        "collectively show about {topic} and why it matters.",
+        "Write the Conclusion of this {review} in about 80 words (3 sentences): summarize what the papers "
+        "above collectively show about {topic} and why it matters.",
     ),
 ]
-FALLBACK_SECTIONS = [spec.heading for spec in SECTION_SPECS]
 
 FINDING_KEYWORDS = (
     "we show", "we find", "we found", "results", "demonstrate", "reveal", "suggest", "indicate",
@@ -130,34 +134,42 @@ class OutlineGenerator:
         synthesis: str,
         research_gaps: str = "",
         summaries: Sequence[PaperSummary] = (),
+        sections: Sequence[str] = tuple(REPORT_SECTIONS),
+        review: str = "literature review",
     ) -> Outline:
-        title, drafted = self._draft_outline(topic, synthesis, research_gaps)
-        context = sources_block(summaries) or synthesis[:3000]
+        """Writes the chosen `sections` (REPORT_SECTIONS keys); `review` names the review type in prompts."""
+        specs = [spec for spec in SECTION_SPECS if spec.key in sections]
+        title, drafted = self._draft_outline(topic, synthesis, research_gaps, specs)
+        context = sources_block(summaries, self.synthesizer.context_chars) or synthesis[:3000]
 
-        # Extra sections the model invents beyond the standard six are dropped: with small models
+        # Extra sections the model invents beyond the requested ones are dropped: with small models
         # they are almost always restatements or hallucinated topics.
-        sections: List[OutlineSection] = []
+        outline_sections: List[OutlineSection] = []
         claimed = set()
         written: List[str] = []  # points already used, so sections can't just repeat each other
-        for spec in SECTION_SPECS:
+        for spec in specs:
             index = next(
                 (i for i, s in enumerate(drafted) if i not in claimed and self._matches(spec, s.heading)), None
             )
             if index is not None:
                 claimed.add(index)
             draft = drafted[index] if index is not None else None
-            section = self._resolve_section(spec, draft, topic, context, research_gaps, summaries, synthesis, written)
+            section = self._resolve_section(spec, draft, topic, review, context, summaries, synthesis, written)
             written.extend(section.points)
-            sections.append(section)
-        return Outline(title=self._valid_title(title, topic), sections=sections)
+            outline_sections.append(section)
+        return Outline(title=self._valid_title(title, topic), sections=outline_sections)
 
-    def _draft_outline(self, topic: str, synthesis: str, research_gaps: str) -> Tuple[str, List[OutlineSection]]:
+    def _draft_outline(
+        self, topic: str, synthesis: str, research_gaps: str, specs: Sequence[SectionSpec]
+    ) -> Tuple[str, List[OutlineSection]]:
         """Asks the model for a JSON outline; returns ("", []) if nothing usable comes back."""
+        if not specs:
+            return "", []
         system = (
             "You are a research assistant creating a structured outline for an academic research "
             "paper. Respond with ONLY valid JSON, no prose, no markdown code fences."
         )
-        headings = ", ".join(f'"{h}"' for h in FALLBACK_SECTIONS)
+        headings = ", ".join(f'"{spec.heading}"' for spec in specs)
         user = (
             f"Research topic: {topic}\n\n"
             f"Literature synthesis:\n{synthesis[:2200]}\n\n"
@@ -182,19 +194,12 @@ class OutlineGenerator:
         spec: SectionSpec,
         draft: Optional[OutlineSection],
         topic: str,
+        review: str,
         context: str,
-        research_gaps: str,
         summaries: Sequence[PaperSummary],
         synthesis: str,
         written: Sequence[str] = (),
     ) -> OutlineSection:
-        # Research gaps were already generated earlier in the run. The outline lists their names;
-        # the full descriptions appear once, in the report's Research Gaps & Future Work section.
-        if spec.heading.startswith("Research Gaps"):
-            points = self._gap_points(research_gaps)
-            if points:
-                return OutlineSection(spec.heading, points, origin="gaps")
-
         if draft is not None:
             points = self._clean_points([fix_against_source(p, context) for p in draft.points], written)
             problem = synthesis_issue("\n".join(points), context) or content_issue(
@@ -206,20 +211,22 @@ class OutlineGenerator:
                 return OutlineSection(spec.heading, points, origin="llm")
             logger.info("Outline draft for %r rejected (%s)", spec.heading, problem)
 
-        points = self._write_section(spec, topic, context, written)
+        points = self._write_section(spec, topic, review, context, written)
         if points:
             return OutlineSection(spec.heading, points, origin="llm-section")
 
         logger.warning("Using paper-derived default content for section %r", spec.heading)
-        points = self._default_points(spec, topic, summaries, synthesis, research_gaps)
+        points = self._default_points(spec, topic, summaries, synthesis)
         return OutlineSection(spec.heading, self._clean_points(points, written) or points, origin="fallback")
 
-    def _write_section(self, spec: SectionSpec, topic: str, context: str, written: Sequence[str] = ()) -> List[str]:
+    def _write_section(
+        self, spec: SectionSpec, topic: str, review: str, context: str, written: Sequence[str] = ()
+    ) -> List[str]:
         system = (
             "You are a research assistant writing one section of a literature-review paper. Use only "
             "facts from the provided papers. Write plain sentences, no headings, no placeholder text."
         )
-        user = f"Research topic: {topic}\n\nPapers:\n{context}\n\nTask: {spec.instruction.format(topic=topic)}"
+        user = f"Research topic: {topic}\n\nPapers:\n{context}\n\nTask: {spec.instruction.format(topic=topic, review=review)}"
 
         def validate(text: str) -> Optional[str]:
             points = self._clean_points(split_sentences(text), written)
@@ -231,16 +238,6 @@ class OutlineGenerator:
             system, user, max_tokens=250, min_sentences=2, validator=validate, label=f"{spec.heading} section"
         )
         return self._clean_points(split_sentences(fix_against_source(text, context)), written) if text else []
-
-    @staticmethod
-    def _gap_points(research_gaps: str) -> List[str]:
-        points = []
-        for title, desc in parse_gaps(research_gaps):
-            first = split_sentences(desc)[:1]
-            point = title or (first[0] if first else "")
-            if point:
-                points.append(point.rstrip("."))
-        return points
 
     @staticmethod
     def _clean_points(points: Sequence[str], already_written: Sequence[str] = ()) -> List[str]:
@@ -294,22 +291,18 @@ class OutlineGenerator:
         topic: str,
         summaries: Sequence[PaperSummary],
         synthesis: str,
-        research_gaps: str,
     ) -> List[str]:
         if not summaries:
             return self._clean_points(pick_sentences(synthesis, limit=3)) or [
                 f"This section discusses {topic}; no paper summaries were available to draw on."
             ]
-        if spec.heading.startswith("Research Gaps"):
-            return self._default_gaps(topic, list(summaries), research_gaps)  # short names, not sentences
         builders = {
-            "Introduction": self._default_introduction,
-            "Literature Review": self._default_literature_review,
-            "Methodology": self._default_methodology,
-            "Discussion/Findings": self._default_findings,
-            "Conclusion": self._default_conclusion,
+            "introduction": self._default_introduction,
+            "methodology": self._default_methodology,
+            "discussion": self._default_findings,
+            "conclusion": self._default_conclusion,
         }
-        return self._clean_points(builders[spec.heading](topic, list(summaries)))
+        return self._clean_points(builders[spec.key](topic, list(summaries)))
 
     @staticmethod
     def _year_range(summaries: List[PaperSummary]) -> str:
@@ -335,38 +328,14 @@ class OutlineGenerator:
     # which the report already shows under Paper Summaries.
 
     @staticmethod
-    def _default_literature_review(topic: str, summaries: List[PaperSummary]) -> List[str]:
-        points = [
-            f"The literature on {topic} is approached from {len(summaries)} distinct angles: "
-            + join_items(f"{paper_focus(s.paper)} {cite(s.paper)}" for s in summaries) + "."
-        ]
-        themes = shared_themes(summaries, exclude=topic)
-        if themes:
-            using = [s for s in summaries if themes[0] in f"{s.paper.title} {s.paper.abstract} {s.summary}".lower()]
-            points.append(
-                f"The most widely shared theme is {themes[0]}, taken up by "
-                + join_items(f"{s.paper.first_author_surname} ({s.paper.year or 'n.d.'})" for s in using)
-                + (f", alongside related concerns with {join_items(themes[1:])}." if themes[1:] else ".")
-            )
-        if len(summaries) > 1:
-            points.append(
-                "Rather than building directly on one another, these works develop in parallel, each "
-                "framing the problem through its own domain and terminology."
-            )
-        return points
-
-    @staticmethod
     def _default_methodology(topic: str, summaries: List[PaperSummary]) -> List[str]:
-        sources = sorted({s.paper.source for s in summaries if s.paper.source}) or ["academic databases"]
-        points = [
-            f"This review retrieved papers from {', '.join(sources)} with the query \"{topic}\" and compared "
-            f"the {len(summaries)} most relevant by theme and research design."
-        ]
+        # The search and screening protocol is described separately (review_methodology.protocol_paragraphs).
+        points = []
         groups: dict = {}
         for s in summaries:
             groups.setdefault(method_profile(s.paper), []).append(f"{s.paper.first_author_surname}, {s.paper.year or 'n.d.'}")
         points.append(
-            "The reviewed papers fall into the following research designs: "
+            f"The {len(summaries)} included papers fall into the following research designs: "
             + "; ".join(f"{label} ({'; '.join(names)})" for label, names in groups.items()) + "."
         )
         if any(label != "empirical studies" for label in groups):
@@ -407,11 +376,6 @@ class OutlineGenerator:
             if finding:
                 points.append(f"{finding.rstrip('.')} {cite(s.paper)}.")
         return points
-
-    def _default_gaps(self, topic: str, summaries: List[PaperSummary], research_gaps: str) -> List[str]:
-        return self._gap_points(research_gaps) or self._gap_points(
-            LLMSynthesizer.fallback_research_gaps(topic, summaries)
-        )
 
     def _default_conclusion(self, topic: str, summaries: List[PaperSummary]) -> List[str]:
         themes = shared_themes(summaries, exclude=topic)

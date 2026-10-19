@@ -5,7 +5,7 @@ import logging
 import time
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 import requests
 
@@ -41,6 +41,13 @@ class Paper:
         return "".join(ch.lower() for ch in self.title if ch.isalnum())
 
 
+@dataclass
+class SearchResult:
+    papers: List[Paper] = field(default_factory=list)  # unique papers, most cited first
+    found_by_source: Dict[str, int] = field(default_factory=dict)  # records returned, before deduplication
+    duplicates: int = 0
+
+
 class PaperDiscovery:
     """Searches multiple free academic APIs and returns deduplicated Paper objects."""
 
@@ -54,32 +61,48 @@ class PaperDiscovery:
         max_results: int = 20,
         sources: Optional[List[str]] = None,
     ) -> List[Paper]:
+        return self.search_queries([query], max_results, sources).papers[:max_results]
+
+    def search_queries(
+        self,
+        queries: List[str],
+        per_query: int = 20,
+        sources: Optional[List[str]] = None,
+    ) -> "SearchResult":
+        """Runs every query against every source; returns all unique papers, most cited first.
+
+        Records found by more than one query or source are counted as duplicates (for the review's
+        methodology flowchart) and kept once.
+        """
         sources = sources or ["arxiv", "semantic_scholar"]
-        results: List[Paper] = []
+        result = SearchResult()
         seen_keys = set()
 
-        for source in sources:
-            try:
-                if source == "arxiv":
-                    papers = self.search_arxiv(query, max_results)
-                elif source == "semantic_scholar":
-                    papers = self.search_semantic_scholar(query, max_results)
-                else:
-                    logger.warning("Unknown paper source: %s", source)
+        for query in queries:
+            for source in sources:
+                try:
+                    if source == "arxiv":
+                        papers = self.search_arxiv(query, per_query)
+                    elif source == "semantic_scholar":
+                        papers = self.search_semantic_scholar(query, per_query)
+                    else:
+                        logger.warning("Unknown paper source: %s", source)
+                        continue
+                except requests.RequestException as exc:
+                    logger.warning("Search failed for source %s (query %r): %s", source, query, exc)
                     continue
-            except requests.RequestException as exc:
-                logger.warning("Search failed for source %s: %s", source, exc)
-                continue
 
-            for paper in papers:
-                key = paper.dedup_key()
-                if not key or key in seen_keys:
-                    continue
-                seen_keys.add(key)
-                results.append(paper)
+                result.found_by_source[source] = result.found_by_source.get(source, 0) + len(papers)
+                for paper in papers:
+                    key = paper.dedup_key()
+                    if not key or key in seen_keys:
+                        result.duplicates += 1
+                        continue
+                    seen_keys.add(key)
+                    result.papers.append(paper)
 
-        results.sort(key=lambda p: (p.citation_count, p.year or 0), reverse=True)
-        return results[:max_results]
+        result.papers.sort(key=lambda p: (p.citation_count, p.year or 0), reverse=True)
+        return result
 
     def search_arxiv(self, query: str, max_results: int = 20) -> List[Paper]:
         params = {
@@ -150,9 +173,13 @@ class PaperDiscovery:
             "fields": SEMANTIC_SCHOLAR_FIELDS,
         }
         response = self.session.get(SEMANTIC_SCHOLAR_API_URL, params=params, timeout=REQUEST_TIMEOUT)
-        if response.status_code == 429:
-            logger.warning("Semantic Scholar rate limit hit; backing off and retrying once")
-            time.sleep(2)
+        # The unauthenticated API allows roughly one request per second, which several queries in a
+        # row easily exceed, so back off progressively.
+        for delay in (2, 5, 10):
+            if response.status_code != 429:
+                break
+            logger.warning("Semantic Scholar rate limit hit; retrying in %ds", delay)
+            time.sleep(delay)
             response = self.session.get(SEMANTIC_SCHOLAR_API_URL, params=params, timeout=REQUEST_TIMEOUT)
         response.raise_for_status()
         data = response.json()

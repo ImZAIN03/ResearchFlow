@@ -1,9 +1,10 @@
 """Uses a local Ollama model to summarize papers and synthesize findings across a literature set.
 
 Runs entirely against a local Ollama server (https://ollama.com) instead of a hosted API, so no
-API key or network egress is required beyond http://localhost:11434. Defaults to TinyLlama, a
-~1.1B model light enough to run on modest hardware; "phi" (Phi-2, ~2.7B) is a stronger alternative
-if you have more RAM to spare. Pull whichever you use first: `ollama pull tinyllama`.
+API key or network egress is required beyond http://localhost:11434. Defaults to Mistral (7B),
+which writes far more coherent, better-grounded prose than the small models; on low-RAM machines
+"tinyllama" (~1.1B) or "phi" (Phi-2, ~2.7B) still work. Pull whichever you use first:
+`ollama pull mistral`.
 
 Small models regularly return empty, truncated, looping or placeholder ("Lorem ipsum...") text, so
 every generation is validated with content_issue() and retried once with a stricter prompt. If the
@@ -27,17 +28,22 @@ from .text_extraction import TextExtractor
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_MODEL = "tinyllama"  # alternative: "phi" (Phi-2, larger but more capable)
+DEFAULT_MODEL = "mistral"  # alternatives for low-RAM machines: "phi" (Phi-2), "tinyllama"
 DEFAULT_BASE_URL = "http://localhost:11434"
 DEFAULT_KEEP_ALIVE = "5m"  # model stays warm between the many calls within a single run
 REQUEST_TIMEOUT = 600  # CPU inference on small models can be slow
 
-# TinyLlama has a 2048-token context window. Prompt + output must fit inside it, otherwise Ollama
-# silently truncates the prompt and the model answers with little or nothing, so inputs are kept
-# well under ~1200 tokens (~4 chars/token) and outputs are capped per task.
+# TinyLlama and Phi-2 have a 2048-token context window. Prompt + output must fit inside it, otherwise
+# Ollama silently truncates the prompt and the model answers with little or nothing, so inputs are
+# kept well under ~1200 tokens (~4 chars/token) and outputs are capped per task. Larger models such
+# as Mistral get a bigger window, so each paper keeps more of its summary in the synthesis prompts.
 NUM_CTX = 2048
 MAX_SOURCE_CHARS = 3500  # per-paper text sent for summarization
 MAX_CONTEXT_CHARS = 3200  # combined paper summaries sent for synthesis / section writing
+SMALL_CONTEXT_MODELS = ("tinyllama", "phi")
+LARGE_NUM_CTX = 8192
+LARGE_SOURCE_CHARS = 8000
+LARGE_CONTEXT_CHARS = 9000
 MAX_RETRIES = 1  # one extra attempt per generation keeps a 3-paper run around 10 minutes on CPU
 
 PLACEHOLDER_PATTERN = re.compile(
@@ -133,6 +139,7 @@ class PaperSummary:
     summary: str
     key_findings: List[str] = field(default_factory=list)
     from_llm: bool = True  # False when the model output was rejected and the abstract was used
+    gap: str = ""  # what the paper leaves unaddressed, for the Results & Analysis table
 
 
 class OllamaConnectionError(RuntimeError):
@@ -360,6 +367,22 @@ METHOD_PROFILES = (
     ("conceptual frameworks or recommendations", ("framework", "recommendation", "guideline", "principle", "checklist", "taxonomy", "we propose", "we argue", "position")),
 )
 DEFAULT_METHOD_PROFILE = "analytical discussions"
+METHOD_LABELS = {
+    "surveys or reviews of prior work": "Survey / review",
+    "case studies": "Case study",
+    "empirical studies": "Empirical study",
+    "conceptual frameworks or recommendations": "Conceptual framework",
+    DEFAULT_METHOD_PROFILE: "Analytical discussion",
+}
+# What each research design cannot show; the default per-paper gap when the model names none.
+METHOD_GAPS = {
+    "surveys or reviews of prior work": "Synthesizes earlier work without contributing new evidence of its own.",
+    "case studies": "Draws on a single case, so its findings may not generalize to other settings.",
+    "empirical studies": "Findings are tied to the specific data and setting studied; transfer to other contexts is untested.",
+    "conceptual frameworks or recommendations": "The proposed framework has not been validated empirically.",
+    DEFAULT_METHOD_PROFILE: "Its argument is not tested against empirical data.",
+}
+LIMITATION_KEYWORDS = ("limitation", "remain", "open question", "challenge", "lack", "unclear", "not yet", "little is known")
 THEME_STOPWORDS = GROUNDING_STOPWORDS | set(
     "provide provides provided present presents propose proposes important different number several "
     "often first including recent however various given makes making while where whose because "
@@ -377,6 +400,18 @@ def method_profile(paper: Paper) -> str:
         if any(k in text for k in keywords):
             return label
     return DEFAULT_METHOD_PROFILE
+
+
+def method_label(paper: Paper) -> str:
+    return METHOD_LABELS[method_profile(paper)]
+
+
+def default_paper_gap(paper: Paper) -> str:
+    """A paper's stated limitation from its abstract, or what its research design cannot show."""
+    for sentence in pick_sentences(paper.abstract, LIMITATION_KEYWORDS, limit=3, max_len=220):
+        if not FUTURE_WORK_REMARK.search(sentence):
+            return sentence
+    return METHOD_GAPS[method_profile(paper)]
 
 
 def paper_focus(paper: Paper) -> str:
@@ -483,6 +518,10 @@ class LLMSynthesizer:
         self.base_url = (base_url or os.environ.get("OLLAMA_BASE_URL") or DEFAULT_BASE_URL).rstrip("/")
         self.keep_alive = keep_alive
         self.session = session or requests.Session()
+        small = model.split(":")[0].lower() in SMALL_CONTEXT_MODELS
+        self.num_ctx = NUM_CTX if small else LARGE_NUM_CTX
+        self.source_chars = MAX_SOURCE_CHARS if small else LARGE_SOURCE_CHARS
+        self.context_chars = MAX_CONTEXT_CHARS if small else LARGE_CONTEXT_CHARS
         self._verify_server()
 
     def __enter__(self) -> "LLMSynthesizer":
@@ -515,7 +554,7 @@ class LLMSynthesizer:
             "keep_alive": self.keep_alive,
             "options": {
                 "num_predict": max_tokens,
-                "num_ctx": NUM_CTX,
+                "num_ctx": self.num_ctx,
                 "temperature": temperature,
                 "repeat_penalty": 1.15,  # discourages the "Step 1... Step 1..." loops TinyLlama falls into
             },
@@ -606,7 +645,7 @@ class LLMSynthesizer:
         source_text = normalize_whitespace(paper.abstract)
         if full_text and normalize_whitespace(full_text) != source_text:
             source_text = f"{source_text}\n\n{normalize_whitespace(full_text)}"
-        source_text = source_text[:MAX_SOURCE_CHARS]
+        source_text = source_text[: self.source_chars]
         system = (
             "You are a research assistant. Summarize academic papers accurately and concisely. "
             "Only state facts found in the provided text. Never use placeholder text."
@@ -618,7 +657,8 @@ class LLMSynthesizer:
             f"Text:\n{source_text}\n\n"
             "Task: First write a summary of exactly 3 sentences: (1) the problem the paper studies, "
             "(2) its method or approach, (3) its main result. Then write 3 key findings, each on its "
-            "own line starting with '- '."
+            "own line starting with '- '. Finally write one line starting with 'Gap: ' that states, in "
+            "one sentence, an important question or limitation the paper leaves unaddressed."
         )
         raw = self.complete_validated(
             system,
@@ -628,6 +668,7 @@ class LLMSynthesizer:
             label=f"summary for {paper.title[:50]!r}",
         )
         if raw:
+            raw, gap = self._split_gap(raw, source_text)
             summary, findings = self._split_summary_and_findings(raw)
             # TinyLlama often re-types the abstract instead of summarizing it, adding typos as it
             # goes; the clean abstract sentences are strictly better than such a copy.
@@ -642,8 +683,22 @@ class LLMSynthesizer:
                 # questions and bare headings ("Problem Formulation") aren't findings
                 if not PLACEHOLDER_PATTERN.search(f) and not f.rstrip().endswith("?") and len(f.split()) >= 4
             ][:5]
-            return PaperSummary(paper=paper, summary=summary, key_findings=findings)
+            return PaperSummary(paper=paper, summary=summary, key_findings=findings, gap=gap or default_paper_gap(paper))
         return self.fallback_summary(paper, full_text)
+
+    @staticmethod
+    def _split_gap(raw: str, source_text: str) -> Tuple[str, str]:
+        """Separates the 'Gap: ...' line from the summary; the gap is "" if missing or unusable."""
+        kept, gap = [], ""
+        for line in raw.splitlines():
+            match = re.match(r"^[-*•\s]*(?:research\s+)?gap\s*:\s*(.*)$", line.strip(), re.IGNORECASE)
+            if match:
+                gap = gap or normalize_whitespace(match.group(1))
+            else:
+                kept.append(line)
+        if gap and (len(gap.split()) < 6 or PLACEHOLDER_PATTERN.search(gap) or grounding_score(gap, source_text) < 0.4):
+            gap = ""
+        return "\n".join(kept), fix_against_source(split_sentences(gap)[0], source_text) if gap else ""
 
     @staticmethod
     def fallback_summary(paper: Paper, full_text: str = "") -> PaperSummary:
@@ -660,7 +715,7 @@ class LLMSynthesizer:
             if not FUTURE_WORK_REMARK.search(f)
         ]
         logger.info("Using abstract-based summary for %r", paper.title)
-        return PaperSummary(paper=paper, summary=summary, key_findings=findings, from_llm=False)
+        return PaperSummary(paper=paper, summary=summary, key_findings=findings, from_llm=False, gap=default_paper_gap(paper))
 
     @staticmethod
     def _strip_title_and_refs(text: str, title: str) -> str:
@@ -691,13 +746,13 @@ class LLMSynthesizer:
         )
         user = (
             f"Research topic: {topic}\n\n"
-            f"Summaries of {len(summaries)} papers:\n\n{sources_block(summaries)}\n\n"
+            f"Summaries of {len(summaries)} papers:\n\n{sources_block(summaries, self.context_chars)}\n\n"
             "Task: Write 2-3 paragraphs (at least 6 sentences in total) organized by theme, not paper "
             "by paper: what themes the papers share, how their methods differ, where they agree or "
             "disagree, and what remains open. Use your own words; do not copy sentences from the "
             "summaries. Cite every paper by its (Author, Year) tag."
         )
-        context = sources_block(summaries)
+        context = sources_block(summaries, self.context_chars)
 
         def validate(text: str) -> Optional[str]:
             if copied_ratio(text, context) > SYNTH_MAX_COPIED:
@@ -753,13 +808,13 @@ class LLMSynthesizer:
         paragraphs.append(methods)
         paragraphs.append(
             f"Taken together, the literature treats {themes[0] if themes else topic} as a central concern for "
-            f"{topic}, but it leaves several questions open, which are described under Research Gaps & Future Work."
+            f"{topic}, but it leaves several questions open, which are described in the Discussion under Research Gaps."
         )
         return "\n\n".join(paragraphs)
 
     def generate_research_gaps(self, topic: str, synthesis: str, summaries: Sequence[PaperSummary] = ()) -> str:
         """Returns gaps as '- **Title**: 2-3 sentence description' lines (see parse_gaps)."""
-        context = sources_block(summaries) or synthesis[:MAX_CONTEXT_CHARS]
+        context = sources_block(summaries, self.context_chars) or synthesis[: self.context_chars]
         system = "You are a research assistant identifying what is missing from a body of literature."
         user = (
             f"Research topic: {topic}\n\nPapers:\n{context}\n\n"
@@ -803,9 +858,8 @@ class LLMSynthesizer:
             )])
         gaps: List[Tuple[str, str]] = []
 
-        limitation_keywords = ("limitation", "remain", "open question", "challenge", "lack", "unclear", "not yet", "little is known")
         for s in summaries:
-            for sentence in pick_sentences(s.paper.abstract, limitation_keywords, limit=1):
+            for sentence in pick_sentences(s.paper.abstract, LIMITATION_KEYWORDS, limit=1):
                 gaps.append((
                     f"Open problem raised by {s.paper.first_author_surname} ({s.paper.year or 'n.d.'})",
                     f"{s.paper.first_author_surname} ({s.paper.year or 'n.d.'}) flags an unresolved issue: "
@@ -855,12 +909,48 @@ class LLMSynthesizer:
         ))
         return format_gaps(gaps[:4])
 
-    def summarize_all(self, papers: List[Paper], extractor: TextExtractor) -> List[PaperSummary]:
+    def find_tensions(self, topic: str, summaries: Sequence[PaperSummary], limit: int = 3) -> List[Tuple[str, str, str]]:
+        """Asks the model where papers disagree; returns (paper A, paper B, point of tension).
+
+        Each item must cite two different papers of the review. Returns [] when the model finds none
+        (or invents citations); callers then fall back to pairs worth comparing.
+        """
+        if len(summaries) < 2:
+            return []
+        context = sources_block(summaries, self.context_chars)
+        known = set(CITATION.findall(context))
+        system = "You are a research assistant comparing the findings of academic papers."
+        user = (
+            f"Research topic: {topic}\n\nPapers:\n{context}\n\n"
+            "Task: Find up to 3 places where two of these papers disagree, contradict each other, or reach "
+            "different conclusions about the same issue. Write each on its own line as "
+            "'- (Author, Year) vs (Author, Year): one sentence naming the issue and how their positions differ'. "
+            "Use only the (Author, Year) tags of the papers above. If no papers disagree, write 'None'."
+        )
+
+        def parse(text: str) -> List[Tuple[str, str, str]]:
+            found = []
+            for line in text.splitlines():
+                cited = list(dict.fromkeys(CITATION.findall(line)))
+                if len(cited) < 2 or not all(c in known for c in cited[:2]):
+                    continue
+                point = normalize_whitespace(re.split(r":\s", line, maxsplit=1)[-1])
+                if len(point.split()) >= 8 and not PLACEHOLDER_PATTERN.search(point):
+                    (a1, y1), (a2, y2) = cited[:2]
+                    found.append((f"{a1} ({y1})", f"{a2} ({y2})", point.rstrip(".") + "."))
+            return found
+
+        tensions = parse(clean_response(self.complete(system, user, max_tokens=300, temperature=0.3)))
+        if not tensions:
+            logger.info("Model identified no grounded disagreements between papers")
+        return tensions[:limit]
+
+    def summarize_all(self, papers: List[Paper], extractor: TextExtractor, full_text: bool = True) -> List[PaperSummary]:
         summaries = []
         for index, paper in enumerate(papers, 1):
             logger.info("Summarizing paper %d/%d: %s", index, len(papers), paper.title[:80])
             try:
-                text = extractor.extract_text_for_paper(paper)
+                text = extractor.extract_text_for_paper(paper) if full_text else paper.abstract
                 summaries.append(self.summarize_paper(paper, text))
             except OllamaConnectionError:
                 raise

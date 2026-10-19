@@ -1,4 +1,9 @@
-"""Exports a ResearchFlow report (outline, synthesis, summaries, bibliography) to md/docx/pdf."""
+"""Exports a ResearchFlow report (markdown from report_builder) to md/docx/pdf.
+
+The docx and pdf writers understand the subset of markdown the report uses: #-#### headings,
+bullets, *italic* lines, > notes, **bold** spans, pipe tables, ![images](path) relative to the
+output directory, and the critical-thinking markers, which are highlighted so they stand out.
+"""
 from __future__ import annotations
 
 import logging
@@ -7,108 +12,54 @@ from pathlib import Path
 from typing import List
 
 from docx import Document
-from docx.shared import Pt
+from docx.enum.text import WD_COLOR_INDEX
+from docx.shared import Inches, Pt
 from fpdf import FPDF
 from fpdf.enums import XPos, YPos
 
 from .citation_formatter import CitationFormatter
-from .llm_synthesis import PaperSummary, fix_typos, split_sentences
-from .outline_generator import Outline, OutlineSection
+from .critical_gaps import MARKER_PATTERN
 from .paper_discovery import Paper
 
 logger = logging.getLogger(__name__)
+
+IMAGE_LINE = re.compile(r"^!\[([^\]]*)\]\(([^)]+)\)\s*$")
+BOLD_SPAN = re.compile(r"(\*\*[^*]+\*\*)")
+# Characters outside latin-1 that the core PDF fonts can't draw, with readable substitutes.
+PDF_REPLACEMENTS = str.maketrans({"“": '"', "”": '"', "‘": "'", "’": "'", "–": "-", "—": "-", "…": "...", "•": "-"})
+TABLE_COL_WIDTHS = (34, 22, 10, 50, 46, 28)  # mm, fits the 190 mm text width of an A4 page
+
+
+def _table_rows(lines: List[str]) -> List[List[str]]:
+    """Cells of a markdown pipe table, without its |---| separator row."""
+    rows = []
+    for line in lines:
+        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+        if all(re.fullmatch(r":?-{3,}:?", c) for c in cells):
+            continue
+        rows.append(cells)
+    return rows
+
+
+def _blocks(content: str):
+    """Yields ("table", [lines]) for runs of table lines and ("line", line) for everything else."""
+    table: List[str] = []
+    for line in content.splitlines():
+        if line.lstrip().startswith("|"):
+            table.append(line)
+            continue
+        if table:
+            yield "table", table
+            table = []
+        yield "line", line
+    if table:
+        yield "table", table
+
 
 class Exporter:
     def __init__(self, output_dir: Path):
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
-
-    def build_report_markdown(
-        self,
-        topic: str,
-        outline: Outline,
-        synthesis: str,
-        research_gaps: str,
-        summaries: List[PaperSummary],
-        bibliography: str,
-    ) -> str:
-        title = (outline.title if outline else "") or topic
-        lines = [f"# {title}", "", f"*Research report on: {topic}*", ""]
-        said: List[set] = []  # word sets of every sentence already in the report
-
-        if outline and outline.sections:
-            lines.append("## Outline")
-            lines.append("")
-            for section in outline.sections:
-                lines.extend(self._outline_section_md(section, level=3))
-                self._remember(section, said)
-
-        lines.append("## Literature Synthesis")
-        lines.append("")
-        paragraphs = [self._fresh_text(p, said) for p in synthesis.split("\n\n")]
-        lines.append("\n\n".join(p for p in paragraphs if p) or synthesis)
-        lines.append("")
-
-        lines.append("## Research Gaps & Future Work")
-        lines.append("")
-        lines.append(research_gaps)
-        lines.append("")
-        said.extend(self._words(s) for s in split_sentences(research_gaps))
-
-        # Paper summaries only add what earlier sections haven't already said about each paper.
-        lines.append("## Paper Summaries")
-        lines.append("")
-        for s in summaries:
-            lines.append(f"### {s.paper.title}")
-            lines.append(f"*{', '.join(s.paper.authors) or 'Unknown'} ({s.paper.year or 'n.d.'})*")
-            lines.append("")
-            lines.append(self._fresh_text(s.summary, said) or s.summary)
-            findings = [f for f in s.key_findings if self._fresh_text(f, said)]
-            if findings:
-                lines.append("")
-                for finding in findings:
-                    lines.append(f"- {finding}")
-            lines.append("")
-
-        body = fix_typos("\n".join(lines))
-        # Bibliography entries are left untouched: they must match the published titles.
-        return "\n".join([body, "## Bibliography", "", bibliography])
-
-    @staticmethod
-    def _words(sentence: str) -> set:
-        return set(re.findall(r"[a-z]+", sentence.lower()))
-
-    @classmethod
-    def _is_repeat(cls, sentence: str, said: List[set]) -> bool:
-        """True if (nearly) all of the sentence's words already appeared together in one earlier sentence."""
-        words = cls._words(sentence)
-        if len(words) < 6:
-            return False
-        return any(len(other) >= 6 and len(words & other) / min(len(words), len(other)) >= 0.85 for other in said)
-
-    @classmethod
-    def _fresh_text(cls, text: str, said: List[set]) -> str:
-        """Drops sentences already said earlier in the report and records the ones kept."""
-        kept = [s for s in split_sentences(text) if not cls._is_repeat(s, said)]
-        said.extend(cls._words(s) for s in kept)
-        return " ".join(kept)
-
-    @classmethod
-    def _remember(cls, section: OutlineSection, said: List[set]) -> None:
-        for point in section.points:
-            said.extend(cls._words(s) for s in split_sentences(point))
-        for sub in section.subsections:
-            cls._remember(sub, said)
-
-    @staticmethod
-    def _outline_section_md(section: OutlineSection, level: int) -> List[str]:
-        lines = [f"{'#' * level} {section.heading}"]
-        for point in section.points:
-            lines.append(f"- {point}")
-        lines.append("")
-        for sub in section.subsections:
-            lines.extend(Exporter._outline_section_md(sub, level=min(level + 1, 6)))
-        return lines
 
     def export_all(self, content: str, slug: str, formats: List[str]) -> List[Path]:
         """Writes the report in each requested format, markdown first.
@@ -142,30 +93,77 @@ class Exporter:
         path.write_text(content, encoding="utf-8")
         return path
 
+    def _image_path(self, target: str) -> Path:
+        path = Path(target)
+        return path if path.is_absolute() else self.output_dir / path
+
+    # ---- docx -----------------------------------------------------------------------------------
+
+    @staticmethod
+    def _add_runs(paragraph, text: str, italic: bool = False) -> None:
+        """Adds text with **bold** spans; critical-thinking markers are bold and highlighted."""
+        for part in BOLD_SPAN.split(text):
+            if not part:
+                continue
+            bold = part.startswith("**") and part.endswith("**")
+            part = part[2:-2] if bold else part
+            for piece in re.split(f"({MARKER_PATTERN.pattern})", part):
+                if not piece:
+                    continue
+                run = paragraph.add_run(piece)
+                run.bold = bold or bool(MARKER_PATTERN.fullmatch(piece))
+                run.italic = italic
+                if MARKER_PATTERN.fullmatch(piece):
+                    run.font.highlight_color = WD_COLOR_INDEX.YELLOW
+
     def export_docx(self, content: str, filename: str) -> Path:
         document = Document()
         document.styles["Normal"].font.size = Pt(11)
 
-        for line in content.replace("**", "").splitlines():  # markdown bold isn't rendered here
+        for kind, block in _blocks(content):
+            if kind == "table":
+                self._docx_table(document, _table_rows(block))
+                continue
+            line = block
             stripped = line.strip()
-            if line.startswith("# "):
-                document.add_heading(line[2:], level=1)
-            elif line.startswith("## "):
-                document.add_heading(line[3:], level=2)
-            elif line.startswith("### "):
-                document.add_heading(line[4:], level=3)
+            heading = re.match(r"^(#{1,4}) (.*)$", line)
+            image = IMAGE_LINE.match(stripped)
+            if heading:
+                document.add_heading(heading.group(2).replace("**", ""), level=len(heading.group(1)))
+            elif image:
+                path = self._image_path(image.group(2))
+                if path.exists():
+                    document.add_picture(str(path), width=Inches(6.0))
+                else:
+                    logger.warning("Image %s not found; leaving it out of the docx", path)
             elif line.startswith("- "):
-                document.add_paragraph(line[2:], style="List Bullet")
-            elif stripped.startswith("*") and stripped.endswith("*") and len(stripped) > 1:
-                paragraph = document.add_paragraph()
-                run = paragraph.add_run(stripped.strip("*"))
-                run.italic = True
+                self._add_runs(document.add_paragraph(style="List Bullet"), line[2:])
+            elif stripped.startswith("> "):
+                self._add_runs(document.add_paragraph(), stripped[2:], italic=True)
+            elif stripped.startswith("*") and stripped.endswith("*") and not stripped.startswith("**"):
+                self._add_runs(document.add_paragraph(), stripped.strip("*"), italic=True)
             elif stripped:
-                document.add_paragraph(line)
+                self._add_runs(document.add_paragraph(), line)
 
         path = self.output_dir / filename
         document.save(str(path))
         return path
+
+    def _docx_table(self, document, rows: List[List[str]]) -> None:
+        if not rows:
+            return
+        columns = max(len(r) for r in rows)
+        table = document.add_table(rows=len(rows), cols=columns)
+        table.style = "Table Grid"
+        for r, cells in enumerate(rows):
+            for c, text in enumerate(cells):
+                paragraph = table.cell(r, c).paragraphs[0]
+                run = paragraph.add_run(text.replace("**", ""))
+                run.font.size = Pt(8)
+                run.bold = r == 0
+        document.add_paragraph()
+
+    # ---- pdf ------------------------------------------------------------------------------------
 
     def export_pdf(self, content: str, filename: str) -> Path:
         pdf = FPDF()
@@ -173,23 +171,39 @@ class Exporter:
         pdf.add_page()
 
         cell_kwargs = {"new_x": XPos.LMARGIN, "new_y": YPos.NEXT}
-        for line in content.replace("**", "").splitlines():  # markdown bold isn't rendered here
+        heading_sizes = {1: (18, 10), 2: (14, 8), 3: (12, 7), 4: (11, 6)}
+        for kind, block in _blocks(content):
+            if kind == "table":
+                self._pdf_table(pdf, _table_rows(block))
+                continue
+            line = block
             text = self._sanitize_for_pdf(line)
-            if line.startswith("# "):
-                pdf.set_font("Helvetica", "B", 18)
-                pdf.multi_cell(0, 10, text[2:], **cell_kwargs)
-            elif line.startswith("## "):
-                pdf.set_font("Helvetica", "B", 14)
-                pdf.multi_cell(0, 8, text[3:], **cell_kwargs)
-            elif line.startswith("### "):
-                pdf.set_font("Helvetica", "B", 12)
-                pdf.multi_cell(0, 7, text[4:], **cell_kwargs)
-            elif line.startswith("- "):
+            stripped = text.strip()
+            heading = re.match(r"^(#{1,4}) (.*)$", text)
+            image = IMAGE_LINE.match(stripped)
+            pdf.set_text_color(0, 0, 0)
+            if heading:
+                size, height = heading_sizes[len(heading.group(1))]
+                pdf.set_font("Helvetica", "B", size)
+                pdf.multi_cell(0, height, heading.group(2).replace("**", ""), **cell_kwargs)
+            elif image:
+                path = self._image_path(image.group(2))
+                if path.exists():
+                    pdf.image(str(path), w=pdf.epw * 0.85, x=pdf.l_margin + pdf.epw * 0.075)
+                else:
+                    logger.warning("Image %s not found; leaving it out of the pdf", path)
+            elif stripped.startswith("> ") or (stripped.startswith("*") and stripped.endswith("*") and not stripped.startswith("**")):
+                pdf.set_font("Helvetica", "I", 10)
+                pdf.multi_cell(0, 6, stripped.lstrip("> ").strip("*").replace("**", ""), **cell_kwargs)
+            elif stripped:
+                bullet = text.startswith("- ")
+                body = f"  - {text[2:]}" if bullet else text
                 pdf.set_font("Helvetica", "", 11)
-                pdf.multi_cell(0, 6, f"  - {text[2:]}", **cell_kwargs)
-            elif line.strip():
-                pdf.set_font("Helvetica", "", 11)
-                pdf.multi_cell(0, 6, text, **cell_kwargs)
+                if MARKER_PATTERN.search(body):
+                    pdf.set_text_color(160, 70, 0)  # markers stand out for the user to fill in
+                # fpdf2's markdown treats "--" and "__" as styling too, so it is only used where safe.
+                markdown = "**" in body and "--" not in body and "__" not in body
+                pdf.multi_cell(0, 6, body if markdown else body.replace("**", ""), markdown=markdown, **cell_kwargs)
             else:
                 pdf.ln(3)
 
@@ -197,10 +211,23 @@ class Exporter:
         pdf.output(str(path))
         return path
 
+    def _pdf_table(self, pdf: FPDF, rows: List[List[str]]) -> None:
+        if not rows:
+            return
+        widths = TABLE_COL_WIDTHS if len(rows[0]) == len(TABLE_COL_WIDTHS) else None
+        pdf.set_text_color(0, 0, 0)
+        pdf.set_font("Helvetica", "", 7)
+        with pdf.table(col_widths=widths, text_align="LEFT", line_height=3.5, first_row_as_headings=True) as table:
+            for cells in rows:
+                row = table.row()
+                for text in cells:
+                    row.cell(self._sanitize_for_pdf(text.replace("**", "")))
+        pdf.ln(3)
+
     @staticmethod
     def _sanitize_for_pdf(text: str) -> str:
         # Core Helvetica font only supports latin-1.
-        return text.encode("latin-1", errors="replace").decode("latin-1")
+        return text.translate(PDF_REPLACEMENTS).encode("latin-1", errors="replace").decode("latin-1")
 
     def export_bibliography(self, papers: List[Paper], style: str, filename: str) -> Path:
         formatter = CitationFormatter()
