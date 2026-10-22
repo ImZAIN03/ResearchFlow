@@ -12,6 +12,23 @@ Phase 1.6 (src/phase16.py) instead fills every gap automatically with a validate
 insight and writes the final review:
 
     python -m src.main --phase 1.6 --input "output/<topic>.md"
+
+Phase 2 (src/phase2.py) analyses the research designs of the review's papers and proposes a
+Methodology section for the user's own study, with the decisions only they can make marked:
+
+    python -m src.main --phase 2 --input "output/<topic>.md"
+
+Phase 3 (src/phase3.py) sets out what the review's papers found as a Results section and plans the
+analysis of the user's own data, with the places for their results and analysis choices marked:
+
+    python -m src.main --phase 3 --input "output/<topic>.md"
+
+Phase 4 (src/phase4.py) draws Phases 1-3 together into the Conclusion, Implications and Future
+Directions, with the places only the user's finished study can fill marked:
+
+    python -m src.main --phase 4 --input "output/<topic>.md"
+
+--all-phases runs every phase in sequence on a topic: Phase 1, then Phases 2, 3 and 4 on its review.
 """
 from __future__ import annotations
 
@@ -42,6 +59,9 @@ from .outline_generator import REPORT_SECTIONS, Outline, OutlineGenerator
 from .paper_discovery import SOURCES, PaperDiscovery
 from .phase15 import run_phase15
 from .phase16 import PHASE16_MODEL, run_phase16
+from .phase2 import FIELD_CHOICES, PHASE2_FORMATS, run_phase2
+from .phase3 import PHASE3_FORMATS, run_phase3
+from .phase4 import PHASE4_FORMATS, run_phase4
 from .report_builder import ReportBuilder, ReviewInputs, flowchart_filename
 from .review_assembly import IncompleteReviewError
 from .review_methodology import (
@@ -67,9 +87,17 @@ def parse_args(argv=None) -> argparse.Namespace:
     parser.add_argument(
         "--phase",
         default="1",
-        choices=("1", "1.5", "1.6"),
+        choices=("1", "1.5", "1.6", "2", "3", "4"),
         help="1: discover papers and write the review (default). 1.5: fill the review's gaps with your own "
-        "analysis. 1.6: fill them automatically with validated, model-written insights",
+        "analysis. 1.6: fill them automatically with validated, model-written insights. 2: propose a "
+        "methodology for your own study from the review's papers. 3: write a Results section from the papers' "
+        "findings and plan your own data analysis. 4: write the Conclusion, Implications and Future Directions "
+        "from Phases 1-3",
+    )
+    parser.add_argument(
+        "--all-phases",
+        action="store_true",
+        help="Run every phase on the topic in sequence: Phase 1, then Phases 2, 3 and 4 on its review",
     )
     parser.add_argument(
         "--methodology",
@@ -104,11 +132,12 @@ def parse_args(argv=None) -> argparse.Namespace:
     )
     parser.add_argument(
         "--formats",
-        help="Comma-separated export formats: md, docx, pdf (default: md; Phase 1.5: md,docx,pdf; Phase 1.6: md,docx)",
+        help="Comma-separated export formats: md, docx, pdf (default: md; Phase 1.5: md,docx,pdf; Phases 1.6 "
+        "and 2 to 4: md,docx)",
     )
     parser.add_argument(
         "--output-dir",
-        help="Directory to write exported files to (default: output; Phases 1.5 and 1.6: the input's directory)",
+        help="Directory to write exported files to (default: output; Phases 1.5 to 4: the input's directory)",
     )
     parser.add_argument("--data-dir", default="data", help="Directory for cached downloads (e.g. PDFs)")
     parser.add_argument(
@@ -116,25 +145,48 @@ def parse_args(argv=None) -> argparse.Namespace:
         help=f"Ollama model to use for synthesis (default: {DEFAULT_MODEL}; Phase 1.6: {PHASE16_MODEL}; "
         "tinyllama or phi for low-RAM machines)",
     )
-    phase15 = parser.add_argument_group("Phases 1.5 and 1.6 (gap filling)")
-    phase15.add_argument("--input", help="The Phase 1 review (markdown) whose gaps to fill")
+    phase15 = parser.add_argument_group("Phases 1.5 to 4 (working from a Phase 1 review)")
+    phase15.add_argument(
+        "--input",
+        help="The Phase 1 review (markdown) whose gaps to fill; for Phases 2 to 4 also its .researchflow.json "
+        "file or a -complete/-final review (and for Phases 3 and 4 the files the earlier phases wrote)",
+    )
     phase15.add_argument(
         "--filled-gaps",
         help="Your answers file. If it doesn't exist yet, a template with hints for every gap is written there",
     )
     phase15.add_argument("--no-search", action="store_true", help="Don't search for additional papers on each gap")
     phase15.add_argument(
-        "--no-llm", action="store_true", help="Don't use the local model for hints and grammar polishing"
+        "--no-llm",
+        action="store_true",
+        help="Don't use the local model (Phase 1.5: hints and grammar polishing; Phases 2 to 4: classifying "
+        "papers whose design the rules can't recognize)",
     )
     phase15.add_argument(
         "--allow-incomplete",
         action="store_true",
         help="Export the review even if some gaps have no accepted answer (their markers stay in place)",
     )
+    phase2 = parser.add_argument_group("Phases 2 to 4 (methodology, results and conclusion)")
+    phase2.add_argument(
+        "--field",
+        choices=FIELD_CHOICES,
+        help="Methodological tradition to follow instead of the one detected from the papers (Phase 3: also how "
+        f"results are reported; Phase 4: which implications are drawn): {', '.join(FIELD_CHOICES)}",
+    )
     args = parser.parse_args(argv)
     unknown = [s.strip() for s in (args.sources or "").split(",") if s.strip() and s.strip() not in SOURCES]
     if unknown:
         parser.error(f"--sources must be from: {', '.join(SOURCES)} (got {', '.join(unknown)})")
+    if args.all_phases and args.phase != "1":
+        parser.error("--all-phases starts from Phase 1 and can't be combined with --phase")
+    explicit_formats = args.formats
+    if args.phase in ("2", "3", "4"):
+        if not args.input:
+            parser.error(f"--phase {args.phase} needs --input: the Phase 1 review (markdown) or its .researchflow.json file")
+        args.formats = args.formats or {"2": PHASE2_FORMATS, "3": PHASE3_FORMATS, "4": PHASE4_FORMATS}[args.phase]
+        args.model = args.model or DEFAULT_MODEL
+        return args
     if args.phase == "1.6":
         if not args.input:
             parser.error("--phase 1.6 needs --input: the Phase 1 review (markdown) whose gaps to fill")
@@ -148,13 +200,16 @@ def parse_args(argv=None) -> argparse.Namespace:
         args.formats = args.formats or "md,docx,pdf"
         return args
     if not args.topic:
-        parser.error("a research topic is required (or use --phase 1.5/1.6 --input REVIEW.md)")
+        parser.error("a research topic is required (or use --phase 1.5/1.6/2/3/4 --input REVIEW.md)")
     args.sources = args.sources or "arxiv,semantic_scholar"
     args.citation_style = args.citation_style or "apa"
     args.formats = args.formats or "md"
     args.output_dir = args.output_dir or "output"
     args.sections = parse_sections(args.sections, parser)
     args.queries = [q.strip() for q in (args.queries or [args.topic]) if q.strip()] or [args.topic]
+    args.phase2_formats = explicit_formats or PHASE2_FORMATS  # used by --all-phases
+    args.phase3_formats = explicit_formats or PHASE3_FORMATS
+    args.phase4_formats = explicit_formats or PHASE4_FORMATS
     return args
 
 
@@ -341,6 +396,28 @@ def run(args: argparse.Namespace) -> list[Path]:
     return exported_paths
 
 
+def run_all_phases(args: argparse.Namespace) -> list[Path]:
+    """Phase 1 on the topic, then Phases 2, 3 and 4 on the review it wrote."""
+    written = run(args)
+    review_md = Path(args.output_dir) / f"{slugify(args.topic)}.md"
+    # Without md in --formats the review may not exist as markdown, but its paper file always does.
+    review_input = str(review_md if review_md.exists() else sidecar_path(review_md))
+    logger.info("Phase 1 complete. Starting Phase 2 (methodology) on %s", review_input)
+    written += run_phase2(argparse.Namespace(**{
+        **vars(args), "phase": "2", "input": review_input, "formats": args.phase2_formats,
+    }))
+    # Phase 3 reads the design Phase 2 just recommended from its analysis file.
+    logger.info("Phase 2 complete. Starting Phase 3 (results) on %s", review_input)
+    written += run_phase3(argparse.Namespace(**{
+        **vars(args), "phase": "3", "input": review_input, "formats": args.phase3_formats,
+    }))
+    logger.info("Phase 3 complete. Starting Phase 4 (conclusion) on %s", review_input)
+    written += run_phase4(argparse.Namespace(**{
+        **vars(args), "phase": "4", "input": review_input, "formats": args.phase4_formats,
+    }))
+    return written
+
+
 def main(argv=None) -> None:
     args = parse_args(argv)
     try:
@@ -348,6 +425,14 @@ def main(argv=None) -> None:
             run_phase15(args)
         elif args.phase == "1.6":
             run_phase16(args)
+        elif args.phase == "2":
+            run_phase2(args)
+        elif args.phase == "3":
+            run_phase3(args)
+        elif args.phase == "4":
+            run_phase4(args)
+        elif args.all_phases:
+            run_all_phases(args)
         else:
             run(args)
     except KeyboardInterrupt:

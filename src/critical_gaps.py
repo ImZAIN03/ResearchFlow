@@ -36,6 +36,32 @@ MARKER_PATTERN = re.compile("|".join(re.escape(m) for m in MARKERS))
 # A marker as placed in the report (not a mention of one, e.g. in the guide at the top).
 MARKER_LINE = re.compile(r"^\*\*(" + MARKER_PATTERN.pattern + r")\*\*")
 
+# Phase 2 (methodology) markers: decisions about the user's own study that only they can make.
+METHODOLOGY_CHOICE = "[YOUR METHODOLOGY CHOICE]"
+YOUR_SAMPLE = "[YOUR SAMPLE SIZE]"
+YOUR_DATA_SOURCES = "[YOUR DATA SOURCES]"
+YOUR_ANALYSIS_PLAN = "[YOUR ANALYSIS PLAN]"
+YOUR_TIMELINE = "[YOUR TIMELINE & RESOURCES]"
+METHODOLOGY_MARKERS = (METHODOLOGY_CHOICE, YOUR_SAMPLE, YOUR_DATA_SOURCES, YOUR_ANALYSIS_PLAN, YOUR_TIMELINE)
+METHODOLOGY_MARKER_LINE = re.compile(r"^\*\*(" + "|".join(re.escape(m) for m in METHODOLOGY_MARKERS) + r")\*\*")
+
+# Phase 3 (results) markers: where the user's own data and analysis go.
+YOUR_DATA_ANALYSIS = "[YOUR DATA ANALYSIS]"
+YOUR_ANALYSIS_METHOD = "[YOUR ANALYSIS METHOD]"
+RESULTS_MARKERS = (YOUR_DATA_ANALYSIS, YOUR_ANALYSIS_METHOD)
+RESULTS_MARKER_LINE = re.compile(r"^\*\*(" + "|".join(re.escape(m) for m in RESULTS_MARKERS) + r")\*\*")
+
+# Phase 4 (conclusion) markers: what only the user's finished study can say.
+YOUR_CONTRIBUTION = "[YOUR CONTRIBUTION]"
+YOUR_LIMITATIONS = "[YOUR STUDY'S LIMITATIONS]"
+YOUR_PRIORITIES = "[YOUR RESEARCH PRIORITIES]"
+CONCLUSION_MARKERS = (YOUR_CONTRIBUTION, YOUR_LIMITATIONS, YOUR_PRIORITIES)
+CONCLUSION_MARKER_LINE = re.compile(r"^\*\*(" + "|".join(re.escape(m) for m in CONCLUSION_MARKERS) + r")\*\*")
+# Every marker the exports highlight for the user to fill in.
+HIGHLIGHT_PATTERN = re.compile(
+    "|".join(re.escape(m) for m in MARKERS + METHODOLOGY_MARKERS + RESULTS_MARKERS + CONCLUSION_MARKERS)
+)
+
 # What to scrutinize in each research design (keys are llm_synthesis.METHOD_PROFILES labels).
 DESIGN_CRITIQUES = {
     "empirical studies": "Assess their samples, datasets and measures: are they large and representative enough, "

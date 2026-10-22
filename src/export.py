@@ -2,7 +2,8 @@
 
 The docx and pdf writers understand the subset of markdown the report uses: #-#### headings,
 bullets, *italic* lines, > notes, **bold** spans, pipe tables, ![images](path) relative to the
-output directory, and the critical-thinking markers, which are highlighted so they stand out.
+output directory, and the critical-thinking (and Phase 2-4) markers, which are highlighted so
+they stand out.
 """
 from __future__ import annotations
 
@@ -18,7 +19,7 @@ from fpdf import FPDF
 from fpdf.enums import XPos, YPos
 
 from .citation_formatter import CitationFormatter
-from .critical_gaps import MARKER_PATTERN
+from .critical_gaps import HIGHLIGHT_PATTERN
 from .paper_discovery import Paper
 
 logger = logging.getLogger(__name__)
@@ -26,8 +27,13 @@ logger = logging.getLogger(__name__)
 IMAGE_LINE = re.compile(r"^!\[([^\]]*)\]\(([^)]+)\)\s*$")
 BOLD_SPAN = re.compile(r"(\*\*[^*]+\*\*)")
 # Characters outside latin-1 that the core PDF fonts can't draw, with readable substitutes.
-PDF_REPLACEMENTS = str.maketrans({"“": '"', "”": '"', "‘": "'", "’": "'", "–": "-", "—": "-", "…": "...", "•": "-"})
+PDF_REPLACEMENTS = str.maketrans({
+    "“": '"', "”": '"', "‘": "'", "’": "'", "–": "-", "—": "-", "…": "...", "•": "-",
+    # statistical symbols in the Phase 3 results
+    "α": "alpha", "β": "beta", "κ": "kappa", "η": "eta", "χ": "chi", "ρ": "rho", "≤": "<=", "≥": ">=",
+})
 TABLE_COL_WIDTHS = (34, 22, 10, 50, 46, 28)  # mm, fits the 190 mm text width of an A4 page
+TABLE_FIRST_HEADER = "Paper Title"  # the widths are for the Results & Analysis table; other tables share the width evenly
 
 
 def _table_rows(lines: List[str]) -> List[List[str]]:
@@ -107,13 +113,13 @@ class Exporter:
                 continue
             bold = part.startswith("**") and part.endswith("**")
             part = part[2:-2] if bold else part
-            for piece in re.split(f"({MARKER_PATTERN.pattern})", part):
+            for piece in re.split(f"({HIGHLIGHT_PATTERN.pattern})", part):
                 if not piece:
                     continue
                 run = paragraph.add_run(piece)
-                run.bold = bold or bool(MARKER_PATTERN.fullmatch(piece))
+                run.bold = bold or bool(HIGHLIGHT_PATTERN.fullmatch(piece))
                 run.italic = italic
-                if MARKER_PATTERN.fullmatch(piece):
+                if HIGHLIGHT_PATTERN.fullmatch(piece):
                     run.font.highlight_color = WD_COLOR_INDEX.YELLOW
 
     def export_docx(self, content: str, filename: str) -> Path:
@@ -199,7 +205,7 @@ class Exporter:
                 bullet = text.startswith("- ")
                 body = f"  - {text[2:]}" if bullet else text
                 pdf.set_font("Helvetica", "", 11)
-                if MARKER_PATTERN.search(body):
+                if HIGHLIGHT_PATTERN.search(body):
                     pdf.set_text_color(160, 70, 0)  # markers stand out for the user to fill in
                 # fpdf2's markdown treats "--" and "__" as styling too, so it is only used where safe.
                 markdown = "**" in body and "--" not in body and "__" not in body
@@ -214,7 +220,7 @@ class Exporter:
     def _pdf_table(self, pdf: FPDF, rows: List[List[str]]) -> None:
         if not rows:
             return
-        widths = TABLE_COL_WIDTHS if len(rows[0]) == len(TABLE_COL_WIDTHS) else None
+        widths = TABLE_COL_WIDTHS if rows[0][0] == TABLE_FIRST_HEADER and len(rows[0]) == len(TABLE_COL_WIDTHS) else None
         pdf.set_text_color(0, 0, 0)
         pdf.set_font("Helvetica", "", 7)
         with pdf.table(col_widths=widths, text_align="LEFT", line_height=3.5, first_row_as_headings=True) as table:
