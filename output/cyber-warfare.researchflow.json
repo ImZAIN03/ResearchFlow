@@ -1,0 +1,79 @@
+{
+  "version": 1,
+  "topic": "Cyber Warfare",
+  "methodology": "systematic",
+  "citation_style": "apa",
+  "papers": [
+    {
+      "title": "Threat Modeling for Cyber Warfare Against Less Cyber-Dependent Adversaries",
+      "authors": [
+        "Shreyas Kumar",
+        "Gourav Nagar"
+      ],
+      "abstract": "Cyber warfare poses a substantial threat in today's interconnected world, where digital attacks can transcend physical boundaries and affect targets globally. Technologically, less advanced adversaries, such as smaller nations or organizations with limited resources, face unique challenges in defending against sophisticated cyber attacks from more advanced entities. This paper explores the threat landscape for these adversaries and proposes a tailored threat modeling framework to address their specific vulnerabilities and needs. By examining the evolution of cyber warfare, including historical incidents and the increasing sophistication of cyber attacks, the study highlights the limitations of existing threat modeling approaches like the Cyber Kill Chain, MITRE ATT&CK Framework, and SWOT analysis when applied to less advanced adversaries. A comprehensive literature review underscores the gaps in current research, particularly the necessity for frameworks tailored to asymmetric technological capabilities. Employing a mixed methods approach, the research combines qualitative and quantitative data from primary sources, such as interviews with cybersecurity experts, and secondary sources, including existing literature and case studies. The proposed framework focuses on asset identification and classification, vulnerability assessment, threat analysis, and risk assessment. Proactive measures, such as basic cyber hygiene practices, advanced threat detection systems, and collaboration with technologically advanced allies, are recommended alongside reactive measures like incident response planning and disaster recovery. The importance of international cooperation and information sharing is also emphasized. Case studies of cyber incidents involving less advanced adversaries, such as the attacks on Estonia, Georgia, and Ukraine, validate the framework and demonstrate its practical application. The findings indicate that the tailored threat modeling framework effectively addresses the unique challenges faced by less advanced adversaries, enhancing their ability to mitigate risks and improve their cybersecurity posture. This study provides valuable insights and offers a practical framework to bolster defenses against cyber warfare, with future research needed to explore emerging threats and technologies further.",
+      "year": 2024,
+      "venue": "European Conference on Cyber Warfare and Security",
+      "url": "https://www.semanticscholar.org/paper/09b9496d83e9bb0a61bd6a506fd4ef8dfd36543b",
+      "pdf_url": "https://doi.org/10.34190/eccws.23.1.2462",
+      "doi": "10.34190/eccws.23.1.2462",
+      "source": "semantic_scholar",
+      "citation_count": 26,
+      "summary": "The paper studies the threat landscape for less advanced adversaries against sophisticated cyber warfare attacks and proposes a tailored threat modeling framework to address their specific vulnerabilities. The research combines qualitative and quantitative data from primary sources like expert interviews and secondary sources, including existing literature and case studies. The main result is that the proposed framework effectively addresses the unique challenges faced by less advanced adversaries, enhancing their ability to mitigate risks and improve their cybersecurity posture.",
+      "key_findings": [
+        "The study highlights limitations of existing threat modeling approaches when applied to less advanced adversaries.",
+        "Case studies validate the effectiveness of the tailored threat modeling framework in practical applications.",
+        "Proactive measures like basic cyber hygiene practices, advanced threat detection systems, and international cooperation are recommended for enhancing defenses against cyber warfare."
+      ],
+      "gap": "The paper does not explore emerging threats and technologies that may further challenge less advanced adversaries in the future."
+    },
+    {
+      "title": "AI-Driven Cyber Threat Intelligence Systems: A National Framework for Proactive Defense Against Evolving Digital Warfare",
+      "authors": [
+        "Md Abubokor Siam",
+        "Ahmed Shan-A-Alahi",
+        "Md Kazi Tuhin",
+        "Emran Hossain",
+        "Monjira Bashir",
+        "Khadeza Yesmin Lucky",
+        "Syed Mohammed Muhive Uddin",
+        "Abdullah Al Zaiem"
+      ],
+      "abstract": "The current study suggests the national framework based on the concept of AI-enabled cyber threat intelligence systems. The increased risk of digital warfare and the shortcomings of the traditional patterns of cybersecurity. The use of artificial intelligence in the early warning of such threats, real-time response, and superior data analysis. It is a crucial concern to national security. The study will determine the contribution of AI-driven CTIS to the improvement of cyber defense capabilities in government and defense. It is critical infrastructure sectors and determines factors that affect these capabilities. The descriptive research design was used, and information was gathered using structured surveys that were administered to 300 cybersecurity practitioners in large and small firms. The findings indicate the maturity of an AI system, and the greater the level of automation in detecting the threat, the better the detection accuracy and the faster the incident response time. A multivariate regression model revealed that there was a positive relationship regarding the independent variables and the effectiveness of AI-CTIS, checking in with an R² = 0.76 and a p < 0.001. Inter-agency cooperation and learning of workforce skills were defined as the most crucial ingredients in the streamlining of CTIS performance. The research project has not overlooked some of the major challenges, which include the failure to standardize, poor policy infrastructure, and interoperability. The national cybersecurity approach is the proactive defense strategy. Companies remain digitally resilient in the long-term perspective. It is high quotients of targeted cyber threats that are changing in detail and quantity.",
+      "year": 2025,
+      "venue": "International Journal of Computational and Experimental Science and Engineering",
+      "url": "https://www.semanticscholar.org/paper/67a4cc313c18e125f74531c057b35aec1220190f",
+      "pdf_url": "https://ijcesen.com/index.php/ijcesen/article/download/3793/1066",
+      "doi": "10.22399/ijcesen.3793",
+      "source": "semantic_scholar",
+      "citation_count": 12,
+      "summary": "The paper studies the need for a national framework based on AI-driven Cyber Threat Intelligence Systems (CTIS) to improve cyber defense capabilities due to the increased risk of digital warfare and shortcomings of traditional cybersecurity methods. The study used a descriptive research design, gathering information through structured surveys from 300 cybersecurity practitioners in large and small firms. The main result indicates that the maturity level of an AI system significantly affects its threat detection accuracy and incident response time, with inter-agency cooperation and workforce skills identified as crucial factors for streamlining CTIS performance.",
+      "key_findings": [
+        "The study found a positive relationship between independent variables (e.g., automation level) and the effectiveness of AI-CTIS, with an R² = 0.76 and p < 0.001.",
+        "Inter-agency cooperation and learning workforce skills were determined as the most important ingredients for improving CTIS performance.",
+        "The research project highlighted some major challenges such as failure to standardize, poor policy infrastructure, and interoperability issues in implementing AI-CTIS at a national level."
+      ],
+      "gap": "The research project has not overlooked some of the major challenges, which include the failure to standardize, poor policy infrastructure, and interoperability."
+    },
+    {
+      "title": "Stuxnet revisited: From cyber warfare to secret statecraft",
+      "authors": [
+        "J. Lindsay"
+      ],
+      "abstract": "ABSTRACT The Stuxnet attack on Iran’s nuclear program is an outlier in the history of cyber conflict. While espionage and subversion are prevalent, serious cyber-physical damage remains rare. Stuxnet has thus had an outsized influence on debates about cyber warfare, for visionaries and skeptics alike. This seminal case deserves a second look in light of more recent evidence and the evolving literature on cybersecurity. Rather than a precious incident of cyber warfare, Stuxnet can be better understood as a tool of covert diplomacy. Indeed, Stuxnet illustrates key features of secret statecraft such as indefinite duration, institutional subversion, clandestine organization, and escalation management.",
+      "year": 2025,
+      "venue": "The  Journal of Strategic Studies",
+      "url": "https://www.semanticscholar.org/paper/ff7134a42d42564dcf54b780070416ec2ac66214",
+      "pdf_url": "",
+      "doi": "10.1080/01402390.2025.2481447",
+      "source": "semantic_scholar",
+      "citation_count": 9,
+      "summary": "The paper examines Stuxnet, a cyber attack on Iran's nuclear program, and its role as an influential case study in cyber warfare debates. It approaches this by revisiting the incident using more recent evidence and literature on cybersecurity. The main result is that instead of being a rare example of cyber warfare, Stuxnet can be understood as a tool of covert diplomacy, exhibiting characteristics such as indefinite duration, institutional subversion, clandestine organization, and escalation management.",
+      "key_findings": [
+        "The paper suggests that Stuxnet was part of a broader strategy of secret statecraft.",
+        "It argues that the attack had an indefinite duration due to its ongoing effects on Iran's nuclear program.",
+        "The study highlights the institutional subversion involved in the creation and execution of Stuxnet."
+      ],
+      "gap": "While espionage and subversion are prevalent, serious cyber-physical damage remains rare."
+    }
+  ]
+}

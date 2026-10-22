@@ -16,7 +16,7 @@ from typing import Dict, List, Optional, Sequence, Tuple
 from .llm_synthesis import join_items, method_profile
 from .paper_discovery import Paper
 
-SOURCE_NAMES = {"arxiv": "arXiv", "semantic_scholar": "Semantic Scholar"}
+SOURCE_NAMES = {"arxiv": "arXiv", "semantic_scholar": "Semantic Scholar", "openalex": "OpenAlex", "pubmed": "PubMed"}
 QUERY_STOPWORDS = set(
     "a an and are as at be by for from in into is it of on or the to with via using its their this "
     "that these those how what why when which between among towards toward based".split()

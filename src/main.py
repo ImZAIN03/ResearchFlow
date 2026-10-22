@@ -3,7 +3,15 @@
 Run with:  python -m src.main "your research topic"
 
 The review is written about 90% automatically; the critical analysis (contradictions, critiques,
-why gaps matter, future directions) is marked in the text for the user to complete.
+why gaps matter, future directions) is marked in the text for the user to complete. Phase 1.5
+(src/phase15.py) then helps the user fill those gaps and assembles the complete review:
+
+    python -m src.main --phase 1.5 --input "output/<topic>.md" --filled-gaps "gaps.txt"
+
+Phase 1.6 (src/phase16.py) instead fills every gap automatically with a validated, model-written
+insight and writes the final review:
+
+    python -m src.main --phase 1.6 --input "output/<topic>.md"
 """
 from __future__ import annotations
 
@@ -18,6 +26,8 @@ from .citation_formatter import CitationFormatter
 from .critical_gaps import marker_counts, user_input_share
 from .export import Exporter
 from .flowchart import render_flowchart
+from .gap_input import AnswerFileError
+from .gap_research import sidecar_path, write_sidecar
 from .llm_synthesis import (
     DEFAULT_MODEL,
     LARGE_CONTEXT_CHARS,
@@ -29,8 +39,11 @@ from .llm_synthesis import (
     sources_block,
 )
 from .outline_generator import REPORT_SECTIONS, Outline, OutlineGenerator
-from .paper_discovery import PaperDiscovery
+from .paper_discovery import SOURCES, PaperDiscovery
+from .phase15 import run_phase15
+from .phase16 import PHASE16_MODEL, run_phase16
 from .report_builder import ReportBuilder, ReviewInputs, flowchart_filename
+from .review_assembly import IncompleteReviewError
 from .review_methodology import (
     METHODOLOGY_CHOICES,
     ReviewFlow,
@@ -50,7 +63,14 @@ def parse_args(argv=None) -> argparse.Namespace:
         prog="researchflow",
         description="Discover, synthesize, and write up literature on a research topic.",
     )
-    parser.add_argument("topic", help="The research topic or question to investigate")
+    parser.add_argument("topic", nargs="?", help="The research topic or question to investigate (Phase 1)")
+    parser.add_argument(
+        "--phase",
+        default="1",
+        choices=("1", "1.5", "1.6"),
+        help="1: discover papers and write the review (default). 1.5: fill the review's gaps with your own "
+        "analysis. 1.6: fill them automatically with validated, model-written insights",
+    )
     parser.add_argument(
         "--methodology",
         default="narrative",
@@ -74,24 +94,65 @@ def parse_args(argv=None) -> argparse.Namespace:
     parser.add_argument("--max-papers", type=int, default=15, help="Maximum number of papers to include")
     parser.add_argument(
         "--sources",
-        default="arxiv,semantic_scholar",
-        help="Comma-separated list of sources to search (arxiv, semantic_scholar)",
+        help=f"Comma-separated list of sources to search ({', '.join(SOURCES)}). Phase 1 default: "
+        "arxiv,semantic_scholar; Phase 1.5 picks them from the review's research field",
     )
     parser.add_argument(
         "--citation-style",
-        default="apa",
         choices=CitationFormatter.SUPPORTED_STYLES,
-        help="Citation style for the bibliography",
+        help="Citation style for the bibliography (default: apa; Phase 1.5 keeps the style Phase 1 used)",
     )
-    parser.add_argument("--formats", default="md", help="Comma-separated export formats: md, docx, pdf")
-    parser.add_argument("--output-dir", default="output", help="Directory to write exported files to")
+    parser.add_argument(
+        "--formats",
+        help="Comma-separated export formats: md, docx, pdf (default: md; Phase 1.5: md,docx,pdf; Phase 1.6: md,docx)",
+    )
+    parser.add_argument(
+        "--output-dir",
+        help="Directory to write exported files to (default: output; Phases 1.5 and 1.6: the input's directory)",
+    )
     parser.add_argument("--data-dir", default="data", help="Directory for cached downloads (e.g. PDFs)")
     parser.add_argument(
         "--model",
-        default=DEFAULT_MODEL,
-        help=f"Ollama model to use for synthesis (default: {DEFAULT_MODEL}; tinyllama or phi for low-RAM machines)",
+        help=f"Ollama model to use for synthesis (default: {DEFAULT_MODEL}; Phase 1.6: {PHASE16_MODEL}; "
+        "tinyllama or phi for low-RAM machines)",
+    )
+    phase15 = parser.add_argument_group("Phases 1.5 and 1.6 (gap filling)")
+    phase15.add_argument("--input", help="The Phase 1 review (markdown) whose gaps to fill")
+    phase15.add_argument(
+        "--filled-gaps",
+        help="Your answers file. If it doesn't exist yet, a template with hints for every gap is written there",
+    )
+    phase15.add_argument("--no-search", action="store_true", help="Don't search for additional papers on each gap")
+    phase15.add_argument(
+        "--no-llm", action="store_true", help="Don't use the local model for hints and grammar polishing"
+    )
+    phase15.add_argument(
+        "--allow-incomplete",
+        action="store_true",
+        help="Export the review even if some gaps have no accepted answer (their markers stay in place)",
     )
     args = parser.parse_args(argv)
+    unknown = [s.strip() for s in (args.sources or "").split(",") if s.strip() and s.strip() not in SOURCES]
+    if unknown:
+        parser.error(f"--sources must be from: {', '.join(SOURCES)} (got {', '.join(unknown)})")
+    if args.phase == "1.6":
+        if not args.input:
+            parser.error("--phase 1.6 needs --input: the Phase 1 review (markdown) whose gaps to fill")
+        args.formats = args.formats or "md,docx"
+        args.model = args.model or PHASE16_MODEL
+        return args
+    args.model = args.model or DEFAULT_MODEL
+    if args.phase == "1.5":
+        if not args.input:
+            parser.error("--phase 1.5 needs --input: the Phase 1 review (markdown) to complete")
+        args.formats = args.formats or "md,docx,pdf"
+        return args
+    if not args.topic:
+        parser.error("a research topic is required (or use --phase 1.5/1.6 --input REVIEW.md)")
+    args.sources = args.sources or "arxiv,semantic_scholar"
+    args.citation_style = args.citation_style or "apa"
+    args.formats = args.formats or "md"
+    args.output_dir = args.output_dir or "output"
     args.sections = parse_sections(args.sections, parser)
     args.queries = [q.strip() for q in (args.queries or [args.topic]) if q.strip()] or [args.topic]
     return args
@@ -263,9 +324,19 @@ def run(args: argparse.Namespace) -> list[Path]:
     exported_paths = exporter.export_all(report_md, slug, formats)
     if flowchart:
         exported_paths.append(exporter.output_dir / flowchart)
+    # The papers behind the review, so Phase 1.5 can research its gaps.
+    review_md = exporter.output_dir / f"{slug}.md"
+    exported_paths.append(
+        write_sidecar(sidecar_path(review_md), topic, methodology.key, args.citation_style, summaries)
+    )
 
     for path in exported_paths:
         logger.info("Exported: %s", path)
+    if any(counts.values()) and review_md.exists():
+        logger.info(
+            "Next, fill the marked gaps: python -m src.main --phase 1.5 --input \"%s\" (or automatically: "
+            "--phase 1.6)", review_md
+        )
 
     return exported_paths
 
@@ -273,10 +344,20 @@ def run(args: argparse.Namespace) -> list[Path]:
 def main(argv=None) -> None:
     args = parse_args(argv)
     try:
-        run(args)
+        if args.phase == "1.5":
+            run_phase15(args)
+        elif args.phase == "1.6":
+            run_phase16(args)
+        else:
+            run(args)
     except KeyboardInterrupt:
         logger.info("Interrupted by user")
         sys.exit(130)
+    except IncompleteReviewError:
+        sys.exit(1)  # the reasons were already logged and written to the quality report
+    except AnswerFileError as exc:
+        logger.error("Could not read your answers: %s", exc)
+        sys.exit(1)
     except (ValueError, OllamaConnectionError) as exc:
         logger.error("Configuration error: %s", exc)
         sys.exit(1)

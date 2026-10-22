@@ -1,0 +1,78 @@
+{
+  "version": 1,
+  "topic": "Artificial Intelligence in Cyber Warfare",
+  "methodology": "systematic",
+  "citation_style": "apa",
+  "papers": [
+    {
+      "title": "The Bayesian Reflex: A Predictive Coding Engine for Artificial Intelligence",
+      "authors": [
+        "Sourabh Bhattacharya"
+      ],
+      "abstract": "Predictive coding offers a powerful theory of cortical computation, but corresponding scalable algorithmic implementations for artificial intelligence have remained elusive. This paper introduces the Bayesian reflex, a computational framework that directly instantiates predictive coding through three pillars: belief maintenance via hierarchical generative models, sequential Bayesian updating via prediction-error minimization, and uncertainty-driven action via active inference. We show that recent breakthroughs---ellipsoidal decomposition for exact $i.i.d.$ sampling, recursive Gaussian processes for deep hierarchical inference, and derivative-aware Bayesian optimization---provide the missing algorithmic ingredients. The resulting framework enables mathematically principled, scalable, and brain-inspired continual learning, perception, and decision-making. We illustrate its versatility through applications ranging from climate model evaluation to prime number discovery, offering a blueprint for truly adaptive artificial intelligence.",
+      "year": 2026,
+      "venue": "arXiv",
+      "url": "http://arxiv.org/abs/2608.00492v1",
+      "pdf_url": "https://arxiv.org/pdf/2608.00492v1",
+      "doi": null,
+      "source": "arxiv",
+      "citation_count": 0,
+      "summary": "The paper introduces the Bayesian Reflex, a computational framework that instantiates predictive coding principles for artificial intelligence. It presents three key components: belief maintenance via generative models, sequential Bayesian updating through prediction error minimization, and uncertainty-driven action using active inference. The main result is a mathematically principled, scalable, and brain-inspired architecture for continual learning, perception, and decision making.",
+      "key_findings": [
+        "The framework utilizes recent breakthroughs like ellipsoidal decomposition, recursive Gaussian processes, and derivative-aware Bayesian optimization to provide the missing algorithmic ingredients.",
+        "Examples of applications range from climate model evaluation to prime number discovery, offering a blueprint for adaptive artificial intelligence.",
+        "The Bayesian Reflex can enable efficient learning of generative model parameters and scalable active inference through derivative-based optimisation techniques."
+      ],
+      "gap": "Predictive coding offers a powerful theory of cortical computation, but corresponding scalable algorithmic implementations for artificial intelligence have remained elusive."
+    },
+    {
+      "title": "Study on the Helpfulness of Explainable Artificial Intelligence",
+      "authors": [
+        "Tobias Labarta",
+        "Elizaveta Kulicheva",
+        "Ronja Froelian",
+        "Christian Geißler",
+        "Xenia Melman",
+        "Julian von Klitzing"
+      ],
+      "abstract": "Explainable Artificial Intelligence (XAI) is essential for building advanced machine learning-powered applications, especially in critical domains such as medical diagnostics or autonomous driving. Legal, business, and ethical requirements motivate using effective XAI, but the increasing number of different methods makes it challenging to pick the right ones. Further, as explanations are highly context-dependent, measuring the effectiveness of XAI methods without users can only reveal a limited amount of information, excluding human factors such as the ability to understand it. We propose to evaluate XAI methods via the user's ability to successfully perform a proxy task, designed such that a good performance is an indicator for the explanation to provide helpful information. In other words, we address the helpfulness of XAI for human decision-making. Further, a user study on state-of-the-art methods was conducted, showing differences in their ability to generate trust and skepticism and the ability to judge the rightfulness of an AI decision correctly. Based on the results, we highly recommend using and extending this approach for more objective-based human-centered user studies to measure XAI performance in an end-to-end fashion.",
+      "year": 2024,
+      "venue": "arXiv",
+      "url": "http://arxiv.org/abs/2410.11896v1",
+      "pdf_url": "https://arxiv.org/pdf/2410.11896v1",
+      "doi": "10.1007/978-3-031-63803-9_16",
+      "source": "arxiv",
+      "citation_count": 0,
+      "summary": "The paper studies the effectiveness of Explainable Artificial Intelligence (XAI) methods for human decision-making in critical domains such as medical diagnostics and autonomous driving. The proposed method evaluates XAI via user's ability to perform a proxy task designed to indicate helpful information. The main approach is to conduct a user study on state-of-the-art XAI methods, measuring their ability to generate trust, skepticism, and the correct judgment of AI decisions. The results show differences among these methods in terms of performance.",
+      "key_findings": [
+        "Differences exist between XAI methods regarding their ability to enable users to judge AI decisions correctly.",
+        "XAI methods can influence a user's trust in AI decisions, with variations observed across different methods.",
+        "XAI methods can help users question AI decisions effectively."
+      ],
+      "gap": "The paper does not address the development of new XAI methods or their extension beyond the six state-of-the-art methods tested in the study."
+    },
+    {
+      "title": "A Review on Explainable Artificial Intelligence for Healthcare: Why, How, and When?",
+      "authors": [
+        "Subrato Bharati",
+        "M. Rubaiyat Hossain Mondal",
+        "Prajoy Podder"
+      ],
+      "abstract": "Artificial intelligence (AI) models are increasingly finding applications in the field of medicine. Concerns have been raised about the explainability of the decisions that are made by these AI models. In this article, we give a systematic analysis of explainable artificial intelligence (XAI), with a primary focus on models that are currently being used in the field of healthcare. The literature search is conducted following the preferred reporting items for systematic reviews and meta-analyses (PRISMA) standards for relevant work published from 1 January 2012 to 02 February 2022. The review analyzes the prevailing trends in XAI and lays out the major directions in which research is headed. We investigate the why, how, and when of the uses of these XAI models and their implications. We present a comprehensive examination of XAI methodologies as well as an explanation of how a trustworthy AI can be derived from describing AI models for healthcare fields. The discussion of this work will contribute to the formalization of the XAI field.",
+      "year": 2023,
+      "venue": "arXiv",
+      "url": "http://arxiv.org/abs/2304.04780v1",
+      "pdf_url": "https://arxiv.org/pdf/2304.04780v1",
+      "doi": "10.1109/TAI.2023.3266418",
+      "source": "arxiv",
+      "citation_count": 0,
+      "summary": "The paper reviews explainable artificial intelligence (XAI) in healthcare, focusing on models currently used and analyzing trends in XAI research. It investigates why, how, and when XAI models are utilized, discussion their implications and outlining methods to derive a trustworthy AI for healthcare fields.",
+      "key_findings": [
+        "The study identifies several obstacles associated with XAI in the healthcare area, including system evaluation, organizational, legal, socio-relational, and communication issues.",
+        "Active collaboration between physicians, theoretical researchers, medical imaging specialists, and medical image analysis specialists is crucial for future development of machine learning and deep learning techniques in healthcare.",
+        "The paper highlights a need for addressing the future research gap concerning XAI's organizational difficulty posed by AI deployment management plans in healthcare settings."
+      ],
+      "gap": "Although the paper discusses various issues associated with XAI, it does not provide specific solutions or recommendations to address these challenges in the healthcare sector."
+    }
+  ]
+}

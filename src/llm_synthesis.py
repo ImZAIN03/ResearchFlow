@@ -449,10 +449,40 @@ def shared_themes(summaries: Sequence[PaperSummary], exclude: str = "", limit: i
 
 
 GAP_ITEM = re.compile(r"^(?:[-*•]|\d+[.)])\s+(.*)$")
+# Titles the model sometimes copies from the prompt's format instead of naming the gap.
+PLACEHOLDER_GAP_TITLES = {"short name", "name", "title", "short title", "gap", "gap name", "gap title", "research gap"}
+# Openings that say a gap exists without naming it ("There is little research on ...").
+GAP_TITLE_FILLER = re.compile(
+    r"^(?:"
+    r"there\s+(?:is|are)\s+(?:a\s+)?(?:little|no|limited|few|scant|insufficient)\s+(?:\w+\s+)?(?:on|of|into|about)\s+"
+    r"|little\s+is\s+known\s+about\s+"
+    r"|(?:few|no)\s+(?:studies|papers|works)\s+(?:have\s+)?\w+\s+"
+    r"|the\s+(?:reviewed\s+)?(?:papers|literature|studies)\s+(?:do\s+not|does\s+not|rarely|seldom|lacks?)\s+(?:\w+\s+)?"
+    r"|while\s+|although\s+|despite\s+"
+    r")",
+    re.IGNORECASE,
+)
+GAP_TITLE_TRAILING = {"a", "an", "the", "of", "and", "or", "to", "in", "on", "for", "with", "by", "at", "from", "as", "is", "are", "that"}
+
+
+def gap_title(description: str, max_words: int = 6) -> str:
+    """A short title for a gap, taken from the opening words of its description."""
+    sentences = split_sentences(description)
+    sentence = GAP_TITLE_FILLER.sub("", sentences[0] if sentences else description or "")
+    words = re.findall(r"[A-Za-z0-9][\w'’-]*", sentence)[:max_words]
+    while words and words[-1].lower() in GAP_TITLE_TRAILING:
+        words.pop()
+    if not words:
+        return ""
+    title = " ".join(words)
+    return title[0].upper() + title[1:]
 
 
 def parse_gaps(text: str) -> List[Tuple[str, str]]:
-    """Splits a research-gaps list into (title, description) pairs; title may be ""."""
+    """Splits a research-gaps list into (title, description) pairs; title may be "".
+
+    A missing or placeholder title ("Short name") is replaced by one built from the description.
+    """
     gaps: List[List[str]] = []
     for line in (text or "").splitlines():
         stripped = line.strip()
@@ -469,9 +499,12 @@ def parse_gaps(text: str) -> List[Tuple[str, str]]:
         body = re.sub(r"^(?:research\s+)?gap\s*\d*\s*[:.)-]\s*", "", body, flags=re.IGNORECASE)
         title, sep, rest = body.partition(":")
         if sep and rest.strip() and len(title.split()) <= 12 and not re.search(r"[.!?]", title):
-            parsed.append((title.strip(), rest.strip()))
+            title, desc = title.strip(), rest.strip()
         else:
-            parsed.append(("", body))
+            title, desc = "", body
+        if not title or title.lower().strip(" '\"") in PLACEHOLDER_GAP_TITLES:
+            title = gap_title(desc)
+        parsed.append((title, desc))
     return parsed
 
 
@@ -819,8 +852,10 @@ class LLMSynthesizer:
         user = (
             f"Research topic: {topic}\n\nPapers:\n{context}\n\n"
             "Task: Identify 3 research gaps: questions these papers leave unanswered. Write each gap on "
-            "its own line as '- Short name: description', where the description is 2-3 sentences "
-            "explaining what is missing from the literature and why it matters. Do not list paper titles."
+            "its own line as '- <Title>: <description>', where <Title> is a 3-6 word noun phrase naming "
+            "the gap's main concept (for example 'Long-term deployment outcomes') and the description is "
+            "2-3 sentences explaining what is missing from the literature and why it matters. Do not "
+            "write the words 'Title' or 'Short name' literally. Do not list paper titles."
         )
 
         def usable(text: str) -> List[Tuple[str, str]]:

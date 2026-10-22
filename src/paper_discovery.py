@@ -1,4 +1,8 @@
-"""Paper discovery: search free academic APIs for papers matching a research query."""
+"""Paper discovery: search free academic APIs for papers matching a research query.
+
+Sources: arXiv, Semantic Scholar, OpenAlex (all fields) and PubMed (biomedicine and life sciences).
+None of them needs an API key.
+"""
 from __future__ import annotations
 
 import logging
@@ -14,6 +18,12 @@ logger = logging.getLogger(__name__)
 ARXIV_API_URL = "http://export.arxiv.org/api/query"
 SEMANTIC_SCHOLAR_API_URL = "https://api.semanticscholar.org/graph/v1/paper/search"
 SEMANTIC_SCHOLAR_FIELDS = "title,abstract,year,venue,authors,url,openAccessPdf,externalIds,citationCount"
+OPENALEX_API_URL = "https://api.openalex.org/works"
+OPENALEX_FIELDS = "id,doi,display_name,publication_year,authorships,abstract_inverted_index,primary_location,open_access,cited_by_count"
+PUBMED_SEARCH_URL = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi"
+PUBMED_FETCH_URL = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi"
+PUBMED_DELAY = 0.4  # NCBI allows 3 requests per second without an API key
+SOURCES = ("arxiv", "semantic_scholar", "openalex", "pubmed")
 
 REQUEST_TIMEOUT = 20
 
@@ -85,10 +95,14 @@ class PaperDiscovery:
                         papers = self.search_arxiv(query, per_query)
                     elif source == "semantic_scholar":
                         papers = self.search_semantic_scholar(query, per_query)
+                    elif source == "openalex":
+                        papers = self.search_openalex(query, per_query)
+                    elif source == "pubmed":
+                        papers = self.search_pubmed(query, per_query)
                     else:
                         logger.warning("Unknown paper source: %s", source)
                         continue
-                except requests.RequestException as exc:
+                except (requests.RequestException, ET.ParseError, ValueError) as exc:
                     logger.warning("Search failed for source %s (query %r): %s", source, query, exc)
                     continue
 
@@ -204,6 +218,108 @@ class PaperDiscovery:
                     doi=external_ids.get("DOI"),
                     source="semantic_scholar",
                     citation_count=item.get("citationCount") or 0,
+                )
+            )
+        return papers
+
+    def search_openalex(self, query: str, max_results: int = 20) -> List[Paper]:
+        params = {"search": query, "per-page": min(max_results, 200), "select": OPENALEX_FIELDS}
+        response = self.session.get(OPENALEX_API_URL, params=params, timeout=REQUEST_TIMEOUT)
+        response.raise_for_status()
+        papers = []
+        for item in response.json().get("results", []) or []:
+            title = " ".join((item.get("display_name") or "").split())
+            if not title:
+                continue
+            authors = [
+                ((a.get("author") or {}).get("display_name") or "").strip()
+                for a in item.get("authorships") or []
+            ]
+            location = item.get("primary_location") or {}
+            venue = ((location.get("source") or {}).get("display_name")) or ""
+            doi = (item.get("doi") or "").replace("https://doi.org/", "") or None
+            papers.append(
+                Paper(
+                    title=title,
+                    authors=[a for a in authors if a],
+                    abstract=self._openalex_abstract(item.get("abstract_inverted_index")),
+                    year=item.get("publication_year"),
+                    venue=venue,
+                    url=location.get("landing_page_url") or item.get("id") or "",
+                    pdf_url=location.get("pdf_url") or (item.get("open_access") or {}).get("oa_url"),
+                    doi=doi,
+                    source="openalex",
+                    citation_count=item.get("cited_by_count") or 0,
+                )
+            )
+        return papers
+
+    @staticmethod
+    def _openalex_abstract(inverted: Optional[Dict[str, List[int]]]) -> str:
+        """OpenAlex ships abstracts as {word: [positions]}; rebuilds the running text."""
+        if not inverted:
+            return ""
+        positions = {pos: word for word, places in inverted.items() for pos in places}
+        return " ".join(positions[i] for i in sorted(positions))
+
+    def search_pubmed(self, query: str, max_results: int = 20) -> List[Paper]:
+        params = {"db": "pubmed", "term": query, "retmax": min(max_results, 100), "retmode": "json", "sort": "relevance"}
+        response = self.session.get(PUBMED_SEARCH_URL, params=params, timeout=REQUEST_TIMEOUT)
+        response.raise_for_status()
+        ids = (response.json().get("esearchresult") or {}).get("idlist") or []
+        if not ids:
+            return []
+        time.sleep(PUBMED_DELAY)
+        response = self.session.get(
+            PUBMED_FETCH_URL, params={"db": "pubmed", "id": ",".join(ids), "retmode": "xml"}, timeout=REQUEST_TIMEOUT
+        )
+        response.raise_for_status()
+        return self._parse_pubmed_xml(response.text)
+
+    @staticmethod
+    def _parse_pubmed_xml(xml_text: str) -> List[Paper]:
+        def text_of(element) -> str:
+            return " ".join("".join(element.itertext()).split()) if element is not None else ""
+
+        papers = []
+        for article in ET.fromstring(xml_text).findall(".//PubmedArticle"):
+            citation = article.find("MedlineCitation")
+            if citation is None:
+                continue
+            info = citation.find("Article")
+            title = text_of(info.find("ArticleTitle") if info is not None else None).rstrip(".")
+            if not title:
+                continue
+            parts = []
+            for section in info.findall("Abstract/AbstractText"):
+                body = text_of(section)
+                label = section.get("Label")
+                if body:
+                    parts.append(f"{label.capitalize()}: {body}" if label else body)
+            authors = []
+            for author in info.findall("AuthorList/Author"):
+                name = " ".join(filter(None, [author.findtext("ForeName"), author.findtext("LastName")]))
+                name = name or author.findtext("CollectiveName") or ""
+                if name.strip():
+                    authors.append(name.strip())
+            year_text = info.findtext("Journal/JournalIssue/PubDate/Year") or (
+                info.findtext("Journal/JournalIssue/PubDate/MedlineDate") or ""
+            )[:4]
+            pmid = citation.findtext("PMID") or ""
+            doi = next(
+                (i.text for i in article.findall("PubmedData/ArticleIdList/ArticleId") if i.get("IdType") == "doi" and i.text),
+                None,
+            )
+            papers.append(
+                Paper(
+                    title=title,
+                    authors=authors,
+                    abstract=" ".join(parts),
+                    year=int(year_text) if year_text.isdigit() else None,
+                    venue=info.findtext("Journal/Title") or "",
+                    url=f"https://pubmed.ncbi.nlm.nih.gov/{pmid}/" if pmid else "",
+                    doi=doi,
+                    source="pubmed",
                 )
             )
         return papers
