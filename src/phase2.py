@@ -55,6 +55,7 @@ from .gap_parser import ReviewDocument, parse_review
 from .gap_research import FIELD_CUES, SIDECAR_SUFFIX, Corpus, SourcePaper, load_corpus, sidecar_path
 from .llm_synthesis import LLMSynthesizer, OllamaConnectionError, join_items, normalize_whitespace, split_sentences
 from .review_methodology import get_methodology
+from .thesis_standards import DEFAULT_DEGREE, degree_paragraph, degree_standard
 
 logger = logging.getLogger("researchflow")
 
@@ -588,6 +589,76 @@ FIELD_TRADITION = {
 }
 FIELD_CHOICES = tuple(TRADITIONS)
 
+# What examiners and reviewers in each tradition check before anything else: (practice, how to meet it).
+FIELD_BEST_PRACTICES: Dict[str, Tuple[Tuple[str, str], ...]] = {
+    "health": (
+        ("Pre-registration", "Register the protocol (ClinicalTrials.gov, PROSPERO or OSF) before data collection, with primary and secondary outcomes fixed in advance."),
+        ("Reporting guideline", "Write to the checklist for your design (CONSORT, STROBE, COREQ/SRQR or PRISMA) and submit the completed checklist as an appendix."),
+        ("Effect estimates", "Report effect sizes with 95% confidence intervals, not p-values alone, and distinguish clinical from statistical significance."),
+        ("Bias control", "State how allocation, blinding and confounding are handled; analyse by intention to treat where groups are compared."),
+        ("Safety", "Record adverse events in every group, even when they are not the study's focus."),
+        ("Data protection", "Describe consent, anonymisation and storage of health data under the applicable law (e.g. GDPR or HIPAA)."),
+    ),
+    "social": (
+        ("Validated instruments", "Adapt established scales where they exist, cite their source, and report reliability (Cronbach's alpha or omega of at least 0.70) for your sample."),
+        ("Piloting", "Pilot every instrument or interview guide with 5-10 people from the population and report what changed."),
+        ("Sampling transparency", "Describe the sampling frame, recruitment route and response rate, and compare respondents with the population on known characteristics."),
+        ("Common-method bias", "When one questionnaire measures both predictors and outcomes, separate them in time or source, or test for common-method variance (e.g. Harman's single-factor test)."),
+        ("Qualitative rigour", "Keep an audit trail, justify saturation, check codes with a second coder or peer, and reflect on your own position."),
+        ("Integration", "In mixed-methods work, integrate the strands in a joint display rather than reporting them side by side."),
+    ),
+    "engineering": (
+        ("Reproducibility", "Fix and report random seeds, release code, configurations and (where licences allow) data, and record hardware, software versions and runtime."),
+        ("Benchmarking standards", "Use the standard splits of public benchmarks, compare with strong recent baselines re-run under the same compute budget, and report every metric the field expects."),
+        ("Statistical comparison", "Run each method several times (3-10 seeds) and report mean and spread or confidence intervals; test differences across seeds or datasets."),
+        ("Ablation and sensitivity", "Remove one component at a time and vary key hyperparameters, so each claimed gain is attributed and its robustness shown."),
+        ("Leakage and validity", "Keep the test set untouched during development, check for train-test overlap, and state threats to internal and external validity."),
+        ("Artefact quality", "Follow a reproducibility checklist (e.g. the NeurIPS checklist or ACM artifact badging) and document how to rerun every table."),
+    ),
+    "law": (
+        ("Authority and currency", "Use primary sources from authoritative databases and confirm each is still good law at the date of writing."),
+        ("Scope", "State the jurisdictions, period and case-selection criteria, and justify them against the research question."),
+        ("Competing interpretations", "Set out the strongest opposing reading of each key source before arguing for your own."),
+        ("Citation standard", "Cite consistently in OSCOLA, the Bluebook or the standard your faculty prescribes."),
+        ("Empirical legal research", "If you interview, survey or observe, obtain ethics approval and handle privileged material carefully."),
+    ),
+    "humanities": (
+        ("Source criticism", "Assess each source's provenance, purpose and reliability, and say how gaps in the record shape your claims."),
+        ("Corpus description", "Describe the archive, corpus or texts, how they were selected and what lies outside them."),
+        ("Triangulation", "Support each central claim with more than one independent source or type of source."),
+        ("Interpretive framework", "Name the theoretical lens you use and reflect on how your position shapes the reading."),
+        ("Access and rights", "Record archive permissions, copyright and, for oral history, consent and ethics approval."),
+    ),
+}
+
+# The deliverable that shows a roadmap stage is done, matched on the stage's wording (first match wins).
+ROADMAP_DELIVERABLES: Tuple[Tuple[str, str], ...] = (
+    (r"protocol|registration", "Registered protocol (OSF, PROSPERO or a trial registry) and approved ethics application"),
+    (r"ethics|access", "Ethics approval (or a documented exemption) and confirmed access to participants or data"),
+    (r"pilot", "Pilot report and the revised instrument"),
+    (r"questionnaire|instrument|interview guide|case selection", "Final instrument or case-selection rationale, with the source of every scale or question"),
+    (r"search|screening", "Search log and PRISMA-style flow counts"),
+    (r"extraction|appraisal|risk-of-bias", "Completed extraction and quality-appraisal forms"),
+    (r"dataset selection|baseline", "Baselines reproduced on the standard splits, matching their published results"),
+    (r"implementation|build|prototype|model design|calibration", "Working, version-controlled implementation with tests"),
+    (r"recruit|collection|fieldwork|interviews|sources", "Clean dataset or transcripts with a data-management log"),
+    (r"experiment|ablation|scenario|sensitivity", "Results tables over several seeds or runs, with ablations and sensitivity checks"),
+    (r"transcription|coding", "Codebook and coded transcripts with an audit trail"),
+    (r"pooling", "Pooled estimates with heterogeneity and publication-bias analyses"),
+    (r"analysis|integration", "Analysis scripts and outputs, and a draft of the results chapter"),
+    (r"writing", "Full draft of the chapter for supervisor review"),
+)
+
+# What to do with each kind of reviewed study when designing your own (keys: the start of compare()'s alignment).
+COMPARISON_ACTIONS: Tuple[Tuple[str, str], ...] = (
+    ("Same design", "Reuse or adapt their instruments, datasets or benchmarks and report the same measures, so your results sit directly beside theirs"),
+    ("Matches the quantitative strand", "Treat their study as the template for your quantitative strand, and aim your qualitative strand at explaining their results"),
+    ("Matches the qualitative strand", "Use their themes or coding frame as the starting point of your qualitative strand, and test how far they generalise in your quantitative strand"),
+    ("Shares its", "Borrow their measures or coding frames where they fit your question, and justify the design difference in your methodology chapter"),
+    ("Different design", "Treat their findings as propositions to test, and state in your rationale what your design can show that theirs cannot"),
+    ("Different: no primary data", "Turn their arguments or frameworks into hypotheses, constructs or interview topics, citing them as the source"),
+)
+
 
 # ---- per-paper analysis -----------------------------------------------------------------------
 
@@ -607,6 +678,7 @@ class StudyDesign:
     evidence: Dict[str, str] = field(default_factory=dict)  # detail -> the sentence it was read from
     confidence: str = "low"
     classified_by: str = "rules"
+    confidence_reason: str = ""  # the evidence behind the confidence rating (design_confidence)
 
     @property
     def kind(self) -> Design:
@@ -731,12 +803,52 @@ def analyse_paper(source: SourcePaper) -> StudyDesign:
         lower = text.lower()
         study.populations = [label for label, cues in POPULATIONS if any(_rx(c).search(lower) for c in cues)]
 
-    has_text = len(source.paper.abstract or source.summary) >= 400
-    if matched and has_text and (study.samples or study.collection):
-        study.confidence = "high"
-    elif matched:
-        study.confidence = "medium"
+    study.confidence, study.confidence_reason = design_confidence(study, matched, sentences, source)
     return study
+
+
+def design_confidence(
+    study: StudyDesign, matched: Sequence[Design], sentences: Sequence[str], source: SourcePaper
+) -> Tuple[str, str]:
+    """(high/medium/low, why) for a paper's design classification, scored from the evidence for it.
+
+        +2  the abstract or summary names the design (+1 if only the title does)
+        +1  two or more of the design's cues occur, so the reading doesn't rest on one phrase
+        +1  each: a stated sample, a stated data-collection method, a stated analysis method
+        -1  each: a competing design from another approach is also described; a short abstract
+
+    5 or more is high, 3-4 medium, anything less low.
+    """
+    if not matched:
+        return "low", "no design keyword occurs in the title or abstract"
+    design = matched[0]
+    score, reasons = 0, []
+    title = sentences[0] if sentences else ""
+    lower = [s.lower() for s in sentences]
+    cue_hits = sum(1 for cue in design.cues for s in lower if _rx(cue).search(s))
+    if study.evidence.get("design") and _clip(title) != study.evidence["design"]:
+        score += 2
+        reasons.append("the abstract names the design")
+    else:
+        score += 1
+        reasons.append("only the title names the design")
+    if cue_hits >= 2:
+        score += 1
+        reasons.append(f"{cue_hits} cues for it agree")
+    for present, label in ((study.samples, "a sample"), (study.collection, "how data were collected"),
+                           (study.analysis, "how data were analysed")):
+        if present:
+            score += 1
+            reasons.append(f"it states {label}")
+    rivals = [d for d in matched[1:] if d.approach != design.approach]
+    if rivals:
+        score -= 1
+        reasons.append(f"it also describes {_a(rivals[0].label)}")
+    if len(source.paper.abstract or source.summary) < 400:
+        score -= 1
+        reasons.append("the abstract is short")
+    label = "high" if score >= 5 else "medium" if score >= 3 else "low"
+    return label, f"score {score}: " + "; ".join(reasons)
 
 
 def model_design(synthesizer: LLMSynthesizer, source: SourcePaper) -> Optional[str]:
@@ -770,6 +882,7 @@ def classify_unclear(studies: Sequence[StudyDesign], sources: Sequence[SourcePap
                 key = model_design(synthesizer, source)
                 if key:
                     study.design, study.classified_by, study.confidence = key, "model", "low"
+                    study.confidence_reason = "classified by the local model; the abstract names no recognisable design"
                     study.evidence["design"] = "Classified by the local model: the abstract names no recognisable design."
                     logger.info("%s classified by the model as: %s", study.narrative, DESIGN_BY_KEY[key].label)
     except (OllamaConnectionError, requests.RequestException) as exc:
@@ -961,6 +1074,52 @@ class MethodologyInputs:
     field_overridden: bool
     recommendation: Recommendation
     bibliography: str
+    tradition_scores: Dict[str, float] = field(default_factory=dict)  # detect_tradition()'s scores, for "Why this field"
+    degree: str = DEFAULT_DEGREE  # thesis_standards key
+
+
+def _field_reasoning(inputs: MethodologyInputs) -> str:
+    """Why the methodological tradition was chosen: the designs pointing to it, the vocabulary, the scores."""
+    studies, tradition = inputs.studies, inputs.tradition
+    typical = [s for s in studies if tradition.key in s.kind.families]
+    parts = []
+    if inputs.field_overridden:
+        return f"**Why this field.** {tradition.name} was chosen with --field; the detected scores are kept in the analysis file."
+    if typical:
+        labels = join_items(sorted({_lc(s.kind.label) for s in typical}))
+        parts.append(f"{_count(len(typical), 'of the studies uses', 'of the studies use')} designs typical of "
+                     f"{tradition.name.lower()} ({labels})")
+    if inputs.field_name:
+        parts.append(f"their vocabulary is closest to {inputs.field_name}")
+    reasoning = "**Why this field.** The field was inferred from two kinds of evidence: " + ("; ".join(parts) or "the topic") + "."
+    if inputs.tradition_scores:
+        ranked = sorted(inputs.tradition_scores.items(), key=lambda kv: -kv[1])[:3]
+        reasoning += (" Weighting designs fully and vocabulary by half, the scores are "
+                      + join_items(f"{TRADITIONS[k].name.lower()} {v:.2f}" for k, v in ranked) + ".")
+        if len(ranked) > 1 and ranked[0][1] - ranked[1][1] < 0.1:
+            reasoning += (f" The margin over {TRADITIONS[ranked[1][0]].name.lower()} is small, so check its conventions "
+                          "too, or set the field explicitly with --field.")
+    return reasoning
+
+
+def _roadmap(rec: Recommendation) -> List[Tuple[str, str, str]]:
+    """(stage, duration, deliverable that shows it is done) for the recommended design."""
+    rows = []
+    for stage, duration in _phases(rec):
+        lower = stage.lower()
+        deliverable = next((d for pattern, d in ROADMAP_DELIVERABLES if re.search(pattern, lower)), "Stage summary signed off by your supervisor")
+        rows.append((stage, duration, deliverable))
+    return rows
+
+
+def _comparison_actions(comparisons: Sequence[Tuple[StudyDesign, str, str]]) -> List[str]:
+    """One action per kind of alignment, naming the studies it applies to."""
+    lines = []
+    for prefix, action in COMPARISON_ACTIONS:
+        group = [s for s, alignment, _ in comparisons if alignment.startswith(prefix)]
+        if group:
+            lines.append(f"- **{prefix.rstrip(':').replace('Shares its', 'Same approach')}** ({_cites(group)}): {action}.")
+    return lines
 
 
 def build_methodology(inputs: MethodologyInputs) -> str:
@@ -976,7 +1135,7 @@ def build_methodology(inputs: MethodologyInputs) -> str:
         f"reviewed studies. The decisions only you can make are marked: **{markers.METHODOLOGY_CHOICE}** (your design "
         f"and research question), **{markers.YOUR_SAMPLE}**, **{markers.YOUR_DATA_SOURCES}**, "
         f"**{markers.YOUR_ANALYSIS_PLAN}** and **{markers.YOUR_TIMELINE}**. Replace each marker with your own "
-        "decisions, and keep, adapt or delete the suggestions around it.",
+        "decisions, and keep, adapt or delete the suggestions around it. " + markers.guidance_legend(),
         "",
     ]
 
@@ -999,14 +1158,14 @@ def build_methodology(inputs: MethodologyInputs) -> str:
             "recommendations follow that field's methodological conventions."
         )
     intro += f" On this basis, the proposed study takes a {rec.design.approach.lower()} approach: {_a(label)}."
-    lines += ["## 1. Research Approach", "", intro, ""]
+    lines += ["## 1. Research Approach", "", intro, "", _field_reasoning(inputs), ""]
 
     # 2. Patterns in the reviewed studies
     lines += [
         "## 2. Methodological Patterns in the Reviewed Studies",
         "",
-        "| Study | Design | Approach | Sample | Data collection | Analysis |",
-        "|---|---|---|---|---|---|",
+        "| Study | Design | Approach | Sample | Data collection | Analysis | Design confidence |",
+        "|---|---|---|---|---|---|---|",
     ]
     for s in studies:
         design_cell = s.kind.label + (" (classified by the model)" if s.classified_by == "model" else "")
@@ -1014,9 +1173,17 @@ def build_methodology(inputs: MethodologyInputs) -> str:
         analysis = "; ".join(ANALYSIS_LABELS[k] for k in s.analysis) or "Not stated"
         lines.append(
             f"| {_cell(s.narrative)} | {_cell(design_cell)} | {s.kind.approach} | {_cell(s.sample_text)} | "
-            f"{_cell(collection)} | {_cell(analysis)} |"
+            f"{_cell(collection)} | {_cell(analysis)} | {_cap(s.confidence)} |"
         )
     lines.append("")
+    unsure = [s for s in studies if s.confidence != "high" and s.confidence_reason]
+    if unsure:
+        lines += [
+            "**Why some classifications are less certain.** Design confidence is scored from the evidence in each "
+            "abstract (the design named, agreeing cues, a stated sample, collection and analysis method). "
+            + " ".join(f"{s.narrative}: {s.confidence} ({s.confidence_reason})." for s in unsure),
+            "",
+        ]
 
     counts = Counter(s.design for s in studies)
     top_key, top_n = counts.most_common(1)[0]
@@ -1052,8 +1219,12 @@ def build_methodology(inputs: MethodologyInputs) -> str:
         detail.append("The abstracts do not state the populations or countries studied.")
     lines += [" ".join(detail), ""]
     lines += [
-        f"*Designs, samples and methods were identified automatically from the titles, abstracts and Phase 1 summaries; "
-        f"the sentence each was read from is listed in {inputs.slug}-methodology-analysis.json. Check them against the full texts.*",
+        markers.guidance(
+            markers.USER_SHOULD_VERIFY,
+            "Designs, samples and methods were identified automatically from the titles, abstracts and Phase 1 "
+            f"summaries; the sentence each was read from is listed in {inputs.slug}-methodology-analysis.json. Check "
+            "them against the full texts, starting with the low-confidence classifications.",
+        ),
         "",
     ]
 
@@ -1116,7 +1287,14 @@ def build_methodology(inputs: MethodologyInputs) -> str:
     # 4. Rationale
     comparisons = [(s, *compare(s, rec)) for s in studies]
     aligned = [s for s, alignment, _ in comparisons if alignment in ("Same design",) or alignment.startswith("Matches")]
-    rationale = []
+    sharing = [s for s, alignment, _ in comparisons if alignment.startswith("Shares")]
+    no_data = [s for s, alignment, _ in comparisons if alignment == "Different: no primary data"]
+    fit = [f"{_count(len(aligned), 'study uses', 'studies use') if aligned else 'none uses'} the proposed design or one of its strands"]
+    if sharing:
+        fit.append(f"{_count(len(sharing), 'shares', 'share')} its {rec.design.approach.lower()} approach")
+    if no_data:
+        fit.append(f"{_count(len(no_data), 'collected', 'collected')} no primary data, which the proposed design supplies")
+    rationale = [f"- **Fit in numbers.** Of the {_count(n, 'reviewed study', 'reviewed studies')}, " + join_items(fit) + "."]
     if aligned:
         if n == 1:
             who = "The reviewed study uses"
@@ -1250,11 +1428,58 @@ def build_methodology(inputs: MethodologyInputs) -> str:
         lines.append(
             f"| {_cell(s.narrative)} | {_cell(s.kind.label)} | {s.kind.approach} | {_cell(label)} | {_cell(alignment)} | {_cell(adds)} |"
         )
+    lines += ["", "**What to do with this comparison.**", "", *_comparison_actions(comparisons), ""]
+
+    # 11. Field-specific best practices
+    lines += ["## 11. Field-Specific Best Practices", "",
+              f"Examiners in {tradition.name.lower()} check these practices first; build each into your design from the start.", ""]
+    lines += [f"- **{practice}.** {how}" for practice, how in FIELD_BEST_PRACTICES[tradition.key]]
+    if vocabulary and vocabulary != tradition.key and not inputs.field_overridden:
+        practice, how = FIELD_BEST_PRACTICES[vocabulary][0]
+        lines.append(f"- **{practice} ({TRADITIONS[vocabulary].name.lower()}).** {how}")
+    lines.append("")
+
+    # 12. Implementation roadmap
+    lines += [
+        "## 12. Implementation Roadmap",
+        "",
+        f"The stages below turn {_a(label)} into a plan; each ends with a deliverable that shows it is done.",
+        "",
+        "| Step | Stage | Indicative duration | Done when you have |",
+        "|---|---|---|---|",
+    ]
+    lines += [f"| {i} | {_cell(stage)} | {duration} | {_cell(done)} |" for i, (stage, duration, done) in enumerate(_roadmap(rec), 1)]
+    first_access = next((text for _, text in _guide_items(rec, "collection")), "")
     lines += [
         "",
-        "*Phase 2 recognises designs from keywords in the papers' titles and abstracts, so a design described only in "
-        "a full text is missed; sample sizes are those stated in the abstracts. The field was detected from the papers "
-        "(override it with --field). Check every classification before relying on it.*",
+        "**First three actions.**",
+        "",
+        f"1. Write your research question{' and hypotheses' if rec.design.approach in (QUANT, MIXED) else ''} in one "
+        "paragraph and check it against the gaps in the review.",
+        "2. Confirm access to your data" + (f": {_lc(first_access)}" if first_access else "") + ".",
+        "3. Draft the ethics application or protocol, using Sections 5 to 8 of this chapter as its methods section.",
+        "",
+    ]
+
+    # 13. Degree standards
+    standard = degree_standard(inputs.degree)
+    lines += [
+        "## 13. Standards for Your Degree",
+        "",
+        degree_paragraph(inputs.degree),
+        "",
+        markers.guidance(
+            markers.USER_MUST_ADD,
+            f"Scope the study to {standard.name} level: state in your research question what is original about it "
+            f"({standard.originality.split(';')[0]}).",
+        ),
+        "",
+        markers.guidance(
+            markers.USER_SHOULD_VERIFY,
+            "Phase 2 recognises designs from keywords in the papers' titles and abstracts, so a design described only "
+            "in a full text is missed; sample sizes are those stated in the abstracts. The field was detected from the "
+            "papers (override it with --field). Check every classification before relying on it.",
+        ),
         "",
         "## References",
         "",
@@ -1336,6 +1561,20 @@ def resolve_review(path: Path) -> Tuple[ReviewDocument, Path]:
     return review, path
 
 
+def log_citation_check(markdown: str, corpus: Corpus, phase: str, extra_known: Sequence[Tuple[str, str]] = ()) -> Dict:
+    """Verifies the phase's in-text citations against the reviewed papers (and `extra_known`
+    methodological works that have their own reference entries) and logs what doesn't match."""
+    from .review_assembly import citation_audit  # imported here: review_assembly imports the gap modules
+
+    result = citation_audit(markdown, [(p.surname, p.year) for p in corpus.papers], extra_known)
+    if result["unresolved"]:
+        logger.warning("%s cites papers that are not in the review: %s", phase, ", ".join(result["unresolved"]))
+    else:
+        logger.info("%s citations: every citation matches a reviewed paper", phase)
+    logger.info("%s: %.0f%% of prose sentences cite a reviewed paper", phase, 100 * result["cited_sentence_share"])
+    return result
+
+
 def run_phase2(args) -> List[Path]:
     load_dotenv()
     input_path = Path(args.input)
@@ -1378,13 +1617,15 @@ def run_phase2(args) -> List[Path]:
         field_overridden=bool(getattr(args, "field", None)),
         recommendation=rec,
         bibliography=CitationFormatter().format_bibliography([p.paper for p in corpus.papers], style=style),
+        tradition_scores=scores,
+        degree=getattr(args, "degree", None) or DEFAULT_DEGREE,
     )
     markdown = build_methodology(inputs)
     written = Exporter(output_dir=output_dir).export_all(markdown, f"{slug}-methodology", formats)
     analysis_path = output_dir / f"{slug}-methodology-analysis.json"
-    analysis_path.write_text(
-        json.dumps(analysis_json(inputs, input_path, scores), indent=2, ensure_ascii=False), encoding="utf-8"
-    )
+    data = analysis_json(inputs, input_path, scores)
+    data["citation_check"] = log_citation_check(markdown, corpus, "Phase 2")
+    analysis_path.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
     written.append(analysis_path)
 
     placed = sum(1 for line in markdown.splitlines() if markers.METHODOLOGY_MARKER_LINE.match(line))

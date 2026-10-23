@@ -57,9 +57,35 @@ YOUR_LIMITATIONS = "[YOUR STUDY'S LIMITATIONS]"
 YOUR_PRIORITIES = "[YOUR RESEARCH PRIORITIES]"
 CONCLUSION_MARKERS = (YOUR_CONTRIBUTION, YOUR_LIMITATIONS, YOUR_PRIORITIES)
 CONCLUSION_MARKER_LINE = re.compile(r"^\*\*(" + "|".join(re.escape(m) for m in CONCLUSION_MARKERS) + r")\*\*")
+# Guidance labels used across all phases, on notes rather than gap markers: what the user must add
+# (their own data or analysis), what they should check against the papers, and optional improvements.
+# They sit on italic note lines ("*[USER SHOULD VERIFY] ...*"), so they are never parsed as gaps, and
+# Phase 1.5/1.6 assembly removes them from the finished review.
+USER_MUST_ADD = "[USER MUST ADD]"
+USER_SHOULD_VERIFY = "[USER SHOULD VERIFY]"
+OPTIONAL_POLISH = "[OPTIONAL POLISH]"
+GUIDANCE_LABELS = (USER_MUST_ADD, USER_SHOULD_VERIFY, OPTIONAL_POLISH)
+GUIDANCE_LINE = re.compile(r"^\*?(?:> )?\*{0,2}(" + "|".join(re.escape(g) for g in GUIDANCE_LABELS) + r")")
+GUIDANCE_PURPOSE = {
+    USER_MUST_ADD: "your own data, results or argument; the text is incomplete without it",
+    USER_SHOULD_VERIFY: "an automatic judgement to check against the papers before submitting",
+    OPTIONAL_POLISH: "an improvement that strengthens the text but is not required",
+}
+
+
+def guidance(label: str, text: str) -> str:
+    """A guidance note as an italic line: "*[USER SHOULD VERIFY] Check ...*"."""
+    return f"*{label} {text.strip().rstrip('*')}*"
+
+
+def guidance_legend() -> str:
+    """One line explaining the three guidance labels, for the "How to complete" notes."""
+    return "Notes are labelled " + "; ".join(f"**{label}** for {purpose}" for label, purpose in GUIDANCE_PURPOSE.items()) + "."
+
+
 # Every marker the exports highlight for the user to fill in.
 HIGHLIGHT_PATTERN = re.compile(
-    "|".join(re.escape(m) for m in MARKERS + METHODOLOGY_MARKERS + RESULTS_MARKERS + CONCLUSION_MARKERS)
+    "|".join(re.escape(m) for m in MARKERS + METHODOLOGY_MARKERS + RESULTS_MARKERS + CONCLUSION_MARKERS + GUIDANCE_LABELS)
 )
 
 # What to scrutinize in each research design (keys are llm_synthesis.METHOD_PROFILES labels).

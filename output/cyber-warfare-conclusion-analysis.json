@@ -18,116 +18,135 @@
     "strength": "limited",
     "reason": "some studies report samples or statistics, but no finding is firmly replicated",
     "study_confidence": {
-      "Yang et al. (2025)": "Low",
-      "Diggelen et al. (2025)": "Low",
-      "Sánchez et al. (2025)": "Low",
-      "Ahmed et al. (2024)": "Medium",
-      "Huang et al. (2024)": "Medium",
-      "Li et al. (2024)": "Low",
-      "Fernandes et al. (2024)": "Low",
-      "Celeny et al. (2024)": "Medium",
-      "Benkő et al. (2024)": "Low",
-      "Lau et al. (2024)": "Low",
-      "Ear et al. (2023)": "Low",
-      "Bouke et al. (2023)": "Low",
-      "Kiely et al. (2023)": "Low",
-      "Li et al. (2023)": "Low"
+      "Kumar et al. (2024)": "Low",
+      "Huang (2024)": "Low",
+      "Siam et al. (2025)": "High",
+      "Ma et al. (2024)": "Low",
+      "Unknown (2023)": "Low",
+      "Cremer et al. (2024)": "Low",
+      "Lindsay (2025)": "Low",
+      "Wang et al. (2024)": "Medium",
+      "Mohamed et al. (2023)": "Low",
+      "Sfetcu (2024)": "Low",
+      "Khan (2025)": "Low",
+      "Rosli (2025)": "Low",
+      "Khoirunnisa et al. (2024)": "Low",
+      "Mohammed (2025)": "Low",
+      "Žilinčík et al. (2023)": "Low"
     },
     "shared_findings": [
       {
-        "finding": "challenges associated",
-        "consistency": "consistent",
+        "finding": "attacks and ukraine",
+        "consistency": "mixed",
         "confidence": "Low",
         "studies": [
-          "Li et al. (2024)",
-          "Bouke et al. (2023)"
+          "Kumar et al. (2024)",
+          "Khoirunnisa et al. (2024)"
+        ]
+      },
+      {
+        "finding": "threat and detection",
+        "consistency": "mixed",
+        "confidence": "Medium",
+        "studies": [
+          "Siam et al. (2025)",
+          "Sfetcu (2024)"
+        ]
+      },
+      {
+        "finding": "security and national",
+        "consistency": "mixed",
+        "confidence": "Low",
+        "studies": [
+          "Rosli (2025)",
+          "Khoirunnisa et al. (2024)"
         ]
       }
     ]
   },
   "research_gaps": [
     {
-      "title": "validation beyond the datasets used",
-      "kind": "evidence",
-      "source": "Yang et al. (2025)"
+      "title": "limitations the authors acknowledge",
+      "kind": "open",
+      "source": "Kumar et al. (2024)"
     },
     {
       "title": "limitations the authors acknowledge",
       "kind": "evidence",
-      "source": "Diggelen et al. (2025)"
+      "source": "Huang (2024)"
+    },
+    {
+      "title": "limitations the authors acknowledge",
+      "kind": "open",
+      "source": "Siam et al. (2025)"
+    },
+    {
+      "title": "limitations the authors acknowledge",
+      "kind": "evidence",
+      "source": "Ma et al. (2024)"
+    },
+    {
+      "title": "limitations the authors acknowledge",
+      "kind": "evidence",
+      "source": "Unknown (2023)"
+    },
+    {
+      "title": "limitations the authors acknowledge",
+      "kind": "evidence",
+      "source": "Cremer et al. (2024)"
+    },
+    {
+      "title": "few real-world cases",
+      "kind": "open",
+      "source": "Lindsay (2025)"
     },
     {
       "title": "limited generalisability",
       "kind": "generalisability",
-      "source": "Sánchez et al. (2025)"
-    },
-    {
-      "title": "untested scalability",
-      "kind": "open",
-      "source": "Yang et al. (2025)"
+      "source": "Wang et al. (2024)"
     },
     {
       "title": "limitations the authors acknowledge",
       "kind": "open",
-      "source": "Ahmed et al. (2024)"
+      "source": "Mohamed et al. (2023)"
     },
     {
       "title": "limitations the authors acknowledge",
       "kind": "evidence",
-      "source": "Huang et al. (2024)"
+      "source": "Sfetcu (2024)"
     },
     {
       "title": "limitations the authors acknowledge",
       "kind": "open",
-      "source": "Li et al. (2024)"
+      "source": "Khan (2025)"
+    },
+    {
+      "title": "limitations the authors acknowledge",
+      "kind": "open",
+      "source": "Rosli (2025)"
     },
     {
       "title": "limitations the authors acknowledge",
       "kind": "evidence",
-      "source": "Fernandes et al. (2024)"
-    },
-    {
-      "title": "limited generalisability",
-      "kind": "generalisability",
-      "source": "Celeny et al. (2024)"
+      "source": "Khoirunnisa et al. (2024)"
     },
     {
       "title": "limitations the authors acknowledge",
       "kind": "evidence",
-      "source": "Benkő et al. (2024)"
+      "source": "Mohammed (2025)"
     },
     {
       "title": "limitations the authors acknowledge",
-      "kind": "open",
-      "source": "Lau et al. (2024)"
-    },
-    {
-      "title": "validation beyond the datasets used",
       "kind": "evidence",
-      "source": "Ear et al. (2023)"
-    },
-    {
-      "title": "limitations the authors acknowledge",
-      "kind": "open",
-      "source": "Bouke et al. (2023)"
-    },
-    {
-      "title": "limitations the authors acknowledge",
-      "kind": "open",
-      "source": "Kiely et al. (2023)"
-    },
-    {
-      "title": "limited generalisability",
-      "kind": "generalisability",
-      "source": "Li et al. (2023)"
+      "source": "Žilinčík et al. (2023)"
     }
   ],
   "future_directions": [
     {
       "category": "Unanswered questions",
-      "title": "Validation beyond the datasets used",
+      "title": "Limitations the authors acknowledge",
       "question": "Do the frameworks and arguments put forward for Cyber Warfare hold up when tested against data?",
-      "rationale": "Phase 1 records validation beyond the datasets used as a limitation of Yang et al. (2025).",
+      "rationale": "Phase 1 records limitations the authors acknowledge as a limitation of Huang (2024).",
       "next_step": "Turn the proposed frameworks into hypotheses and test them on new, independently collected data",
       "design": "Pre-registered empirical test",
       "timeline": "6–18 months",
@@ -139,7 +158,7 @@
       "category": "Unanswered questions",
       "title": "Limited generalisability",
       "question": "Which findings on Cyber Warfare hold beyond the settings in which they were first observed?",
-      "rationale": "Phase 1 records limited generalisability as a limitation of Sánchez et al. (2025).",
+      "rationale": "Phase 1 records limited generalisability as a limitation of Wang et al. (2024).",
       "next_step": "Repeat the strongest study's protocol in at least two new countries, sectors or populations",
       "design": "Multi-site or cross-national replication",
       "timeline": "1–2 years",
@@ -151,7 +170,7 @@
       "category": "Unanswered questions",
       "title": "Issues the studies leave open",
       "question": "Which of the issues the reviewed studies leave open matters most for Cyber Warfare, and can a new study settle it?",
-      "rationale": "Phase 1 records these limitations: untested scalability (Yang et al. (2025)), limitations the authors acknowledge (Ahmed et al. (2024)), limitations the authors acknowledge (Li et al. (2024)), limitations the authors acknowledge (Lau et al. (2024)), limitations the authors acknowledge (Bouke et al. (2023)) and limitations the authors acknowledge (Kiely et al. (2023)).",
+      "rationale": "Phase 1 records these limitations: limitations the authors acknowledge (Kumar et al. (2024)), limitations the authors acknowledge (Siam et al. (2025)), few real-world cases (Lindsay (2025)), limitations the authors acknowledge (Mohamed et al. (2023)), limitations the authors acknowledge (Khan (2025)) and limitations the authors acknowledge (Rosli (2025)).",
       "next_step": "Design a focused study whose research question addresses this gap directly",
       "design": "Mixed-methods design, as proposed in Phase 2",
       "timeline": "1–2 years",
@@ -160,10 +179,46 @@
       "basis": "Phase 1 paper limitations"
     },
     {
+      "category": "Unanswered questions",
+      "title": "Disagreement on attacks and ukraine",
+      "question": "Under which conditions does attacks and ukraine hold, and why do the studies describe it differently?",
+      "rationale": "The studies reporting on it (Kumar et al., 2024; Khoirunnisa et al., 2024) were judged mixed in Phase 3.",
+      "next_step": "Measure the outcome in the same way across the settings the studies cover, and test which differences (sample, setting, measure) explain the disagreement",
+      "design": "Comparative study with shared measures",
+      "timeline": "1–2 years",
+      "feasibility": "Medium",
+      "feasibility_reason": "the settings already studied give a starting point for case selection",
+      "basis": "Phase 3 results"
+    },
+    {
+      "category": "Unanswered questions",
+      "title": "Disagreement on threat and detection",
+      "question": "Under which conditions does threat and detection hold, and why do the studies describe it differently?",
+      "rationale": "The studies reporting on it (Siam et al., 2025; Sfetcu, 2024) were judged mixed in Phase 3.",
+      "next_step": "Measure the outcome in the same way across the settings the studies cover, and test which differences (sample, setting, measure) explain the disagreement",
+      "design": "Comparative study with shared measures",
+      "timeline": "1–2 years",
+      "feasibility": "Medium",
+      "feasibility_reason": "the settings already studied give a starting point for case selection",
+      "basis": "Phase 3 results"
+    },
+    {
+      "category": "Unanswered questions",
+      "title": "Disagreement on security and national",
+      "question": "Under which conditions does security and national hold, and why do the studies describe it differently?",
+      "rationale": "The studies reporting on it (Rosli, 2025; Khoirunnisa et al., 2024) were judged mixed in Phase 3.",
+      "next_step": "Measure the outcome in the same way across the settings the studies cover, and test which differences (sample, setting, measure) explain the disagreement",
+      "design": "Comparative study with shared measures",
+      "timeline": "1–2 years",
+      "feasibility": "Medium",
+      "feasibility_reason": "the settings already studied give a starting point for case selection",
+      "basis": "Phase 3 results"
+    },
+    {
       "category": "Methodological improvements",
       "title": "Transparent reporting of effects and samples",
       "question": "How large are the effects behind the findings on Cyber Warfare, and how precisely are they estimated?",
-      "rationale": "The abstracts of Sánchez et al. (2025), Yang et al. (2025), Fernandes et al. (2024), Celeny et al. (2024), Lau et al. (2024) and Li et al. (2023) give no effect sizes and sample sizes.",
+      "rationale": "The abstracts of Kumar et al. (2024), Lindsay (2025), Wang et al. (2024), Khan (2025) and Žilinčík et al. (2023) give no effect sizes and sample sizes.",
       "next_step": "Report the size of each improvement over the baselines with its variation across runs, and state the datasets' sizes",
       "design": "Any empirical design, pre-registered",
       "timeline": "Built into the next study",
@@ -175,7 +230,7 @@
       "category": "Methodological improvements",
       "title": "Empirical tests of proposed frameworks",
       "question": "Do the frameworks and arguments that rest on no new data stand up to testing?",
-      "rationale": "Yang et al. (2025), Diggelen et al. (2025), Ahmed et al. (2024), Huang et al. (2024), Li et al. (2024), Benkő et al. (2024), Ear et al. (2023), Bouke et al. (2023) and Kiely et al. (2023) collected no new data.",
+      "rationale": "Huang (2024), Ma et al. (2024), Unknown (2023), Cremer et al. (2024), Mohamed et al. (2023), Sfetcu (2024), Rosli (2025), Khoirunnisa et al. (2024) and Mohammed (2025) collected no new data.",
       "next_step": "Derive testable predictions from each framework and check them against independently collected data",
       "design": "Hypothesis-testing empirical study",
       "timeline": "6–18 months",
@@ -199,7 +254,7 @@
       "category": "Replication and scaling",
       "title": "Replication of single-study findings",
       "question": "Which single-study findings survive an independent replication?",
-      "rationale": "The findings of Sánchez et al. (2025), Yang et al. (2025), Fernandes et al. (2024), Celeny et al. (2024), Lau et al. (2024) and Li et al. (2023) have not been reported by any other reviewed study.",
+      "rationale": "The findings of Lindsay (2025), Wang et al. (2024), Khan (2025) and Žilinčík et al. (2023) have not been reported by any other reviewed study.",
       "next_step": "Repeat each study's design and measures on a new sample, reporting the result whatever its direction",
       "design": "Direct or conceptual replication",
       "timeline": "6–12 months",
@@ -209,14 +264,14 @@
     },
     {
       "category": "Replication and scaling",
-      "title": "Scaling up the evidence on challenges associated",
-      "question": "Does what is known about challenges associated hold at larger scale and in other settings?",
-      "rationale": "The evidence so far comes from India.",
-      "next_step": "Evaluate challenges associated at realistic scale: larger datasets, real deployment conditions and the hardware it would run on, reporting cost and latency as well as accuracy",
-      "design": "Scaled evaluation or field deployment",
-      "timeline": "6–18 months",
+      "title": "Scaling up the evidence on Cyber Warfare",
+      "question": "Does what is known about Cyber Warfare hold at larger scale and in other settings?",
+      "rationale": "The evidence so far comes from Estonia, Georgia, Ukraine, Iran, Russia, China and United States.",
+      "next_step": "Test Cyber Warfare in a larger, more varied sample; detecting a small effect (d = 0.2) at 80% power takes about 394 participants per group",
+      "design": "Multi-site study",
+      "timeline": "1–2 years",
       "feasibility": "Medium",
-      "feasibility_reason": "depends on compute and on partners for real deployments",
+      "feasibility_reason": "large samples need several recruitment sites",
       "basis": "Phases 2 and 3"
     },
     {
@@ -235,18 +290,23 @@
   "quality_checks": [
     {
       "name": "Not verbatim",
-      "passed": false,
-      "detail": "6% of 6-word phrases occur in Phases 1-3 or the papers (limit 10%); longest shared run 24 words (from the methodology) (limit 14)"
+      "passed": true,
+      "detail": "0% of 6-word phrases occur in Phases 1-3 or the papers (limit 10%); longest shared run 9 words (from the methodology) (limit 14)"
     },
     {
       "name": "Citations",
-      "passed": true,
-      "detail": "every citation is to a reviewed paper and every paper is cited"
+      "passed": false,
+      "detail": "never cited: Žilinčík (2023)"
     },
     {
       "name": "Draws on Phases 1-3",
       "passed": true,
       "detail": "names the review's gaps, the proposed design and every shared finding"
+    },
+    {
+      "name": "Covers every finding, gap and direction",
+      "passed": true,
+      "detail": "names 3 shared finding(s), 15 gap(s) and 12 direction(s)"
     },
     {
       "name": "Sections",
@@ -256,7 +316,7 @@
     {
       "name": "Future directions",
       "passed": true,
-      "detail": "9 directions in 4 of 4 categories, each with a next step, timeline and feasibility"
+      "detail": "12 directions in 4 of 4 categories, each with a next step, timeline and feasibility"
     },
     {
       "name": "Markers",
@@ -266,7 +326,18 @@
     {
       "name": "Length",
       "passed": true,
-      "detail": "the Conclusion proper has 641 words (expected 350-1600)"
+      "detail": "the Conclusion proper has 910 words (expected 350-1600)"
     }
-  ]
+  ],
+  "deduplication": {
+    "reworded": [],
+    "rewrite_suggestions": []
+  },
+  "citation_check": {
+    "unresolved": [],
+    "uncited": [
+      "Žilinčík (2023)"
+    ],
+    "cited_sentence_share": 0.1
+  }
 }

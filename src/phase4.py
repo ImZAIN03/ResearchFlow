@@ -27,8 +27,12 @@ direction has a timeline and feasibility. What only the user's finished study ca
     [YOUR STUDY'S LIMITATIONS]    the limitations of the study as it was actually carried out
     [YOUR RESEARCH PRIORITIES]    which future direction the user would pursue first
 
-Like Phases 2 and 3 it is rule-based and runs without a model. Writes <review>-conclusion.md and .docx,
-plus <review>-conclusion-analysis.json with the directions, the evidence behind them and the checks.
+Like Phases 2 and 3 it is rule-based and runs without a model. Before the checks, a de-duplication step
+finds sentences that repeat Phases 1-3 (a long verbatim run, or a phrase found in two or more phases)
+and, unless --no-llm is given, asks the local model to reword them; sentences it can't reword safely
+are listed as suggestions. Writes <review>-conclusion.md and .docx, plus
+<review>-conclusion-analysis.json with the directions, the evidence behind them, the checks and the
+de-duplication results.
 """
 from __future__ import annotations
 
@@ -40,14 +44,23 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Dict, List, Sequence, Set, Tuple
 
+import requests
 from dotenv import load_dotenv
 
 from . import critical_gaps as markers
 from .citation_formatter import CitationFormatter
-from .export import Exporter
+from .export import Exporter, build_executive_summary
 from .gap_parser import ReviewDocument, citations_in
 from .gap_research import SIDECAR_SUFFIX, Corpus, load_corpus, sidecar_path
-from .llm_synthesis import join_items
+from .llm_synthesis import (
+    LLMSynthesizer,
+    OllamaConnectionError,
+    clean_response,
+    grounding_score,
+    join_items,
+    normalize_whitespace,
+    split_sentences,
+)
 from .phase2 import (
     CONCEPTUAL,
     DESIGN_BY_KEY,
@@ -68,6 +81,7 @@ from .phase2 import (
     _lc,
     build_methodology,
     compare,
+    log_citation_check,
     resolve_review,
 )
 from .phase3 import (
@@ -91,6 +105,7 @@ PHASE4_FORMATS = "md,docx"
 SHINGLE_WORDS = 6
 MAX_COPIED_SHARE = 0.10  # of the conclusion's 6-word phrases found in Phases 1-3 or the papers
 MAX_COPIED_RUN = 15  # words in a row
+MAX_REWRITES = 8  # sentences the de-duplication step asks the model to reword, longest repeats first
 CONCLUSION_WORDS = (350, 1600)  # expected length of the Conclusion proper (section 1)
 
 HIGH, MEDIUM, LOW = "High", "Medium", "Low"
@@ -648,7 +663,10 @@ def _design_mix(studies: Sequence[StudyDesign]) -> str:
     for s in studies:
         groups.setdefault(s.design, []).append(s)
     return join_items([
-        f"{_a(DESIGN_BY_KEY[k].label)} ({_cites(g)})" if len(g) == 1
+        # "Unclear from the abstract" is not a design name, so it can't follow "using a".
+        f"{'a study' if len(g) == 1 else _count(len(g), 'study', 'studies')} whose design is unclear from the "
+        f"abstract ({_cites(g)})" if k == "unclassified"
+        else f"{_a(DESIGN_BY_KEY[k].label)} ({_cites(g)})" if len(g) == 1
         else f"{_count(len(g), 'study', 'studies')} using {_a(DESIGN_BY_KEY[k].label)} ({_cites(g)})"
         for k, g in sorted(groups.items(), key=lambda item: -len(item[1]))
     ])
@@ -660,6 +678,48 @@ BASIS_REASON = {
     "common": "because it is the design the reviewed studies share, so the new results can be set directly against theirs",
     "default": "because none of the reviewed studies collected new data, and this is the standard empirical design of the field",
 }
+
+
+def review_limitations(profiles: Sequence[ResultProfile]) -> List[str]:
+    """The review's own limits, stated honestly: how papers were selected, how they were read, where they come from."""
+    countries = Counter(c for p in profiles for c in p.study.countries)
+    stated = sum(1 for p in profiles if p.study.countries)
+    limits = [
+        "Papers were selected by a ranking of relevance, citations and recency, which favours established, "
+        "highly cited and English-language work and may under-represent recent, regional or non-English studies.",
+        "Summaries, designs and findings were extracted automatically by rules and a local language model, so "
+        "individual misreadings are possible and each extracted claim needs checking against the full text.",
+    ]
+    if not countries:
+        limits.append("None of the abstracts states where the research was carried out, so the geographic scope of "
+                      "the evidence is unknown.")
+    else:
+        where = join_items([c for c, _ in countries.most_common(5)])
+        limits.append(f"Only {_count(stated, 'study states', 'studies state')} where {'it was' if stated == 1 else 'they were'} "
+                      f"carried out ({where}), so the findings' geographic reach is narrower than the topic's.")
+    return limits
+
+
+def practitioner_steps(inputs: "ConclusionInputs", consistent: Sequence[Theme], divided: Sequence[Theme],
+                       countries: Sequence[str]) -> List[str]:
+    """Numbered steps telling practitioners how to use the findings."""
+    steps = []
+    if consistent:
+        steps.append("Act first on the findings the studies agree on: " + join_items(
+            f"{t.term} ({_theme_cites(t)}; {t.confidence.lower()} confidence)" for t in consistent) + ".")
+    else:
+        steps.append("Treat each finding as a hypothesis for your own setting: none is yet replicated across studies.")
+    steps.append("Pilot before scaling: try the change on a small scale with one clear success measure, a baseline and a "
+                 "fixed review date.")
+    if divided:
+        steps.append("Hold back on " + join_items(t.term for t in divided) + " until the studies' disagreement is "
+                     "resolved, or test both positions side by side in your pilot.")
+    steps.append("Check transfer to your context: "
+                 + (f"the studies that name their setting were carried out in {join_items(list(countries)[:4])}"
+                    if countries else "the studies do not name their settings")
+                 + ", so compare their samples and conditions with yours before relying on the results.")
+    steps.append("Record outcomes after adoption and share them, so practice feeds the evidence the research gaps call for.")
+    return [f"{i}. {step}" for i, step in enumerate(steps, 1)]
 
 
 def build_conclusion(inputs: ConclusionInputs) -> str:
@@ -680,7 +740,7 @@ def build_conclusion(inputs: ConclusionInputs) -> str:
         f"> **How to complete this conclusion.** It is built from the review, the methodology and the results. Where "
         f"only your finished study can speak, the text is marked: **{markers.YOUR_CONTRIBUTION}** for what your results "
         f"add, **{markers.YOUR_LIMITATIONS}** for the limitations of your study as carried out, and "
-        f"**{markers.YOUR_PRIORITIES}** for the direction you would pursue next.",
+        f"**{markers.YOUR_PRIORITIES}** for the direction you would pursue next. " + markers.guidance_legend(),
         "",
         "## 1. Conclusion",
         "",
@@ -703,6 +763,10 @@ def build_conclusion(inputs: ConclusionInputs) -> str:
     review_listed = [g for g in inputs.gaps if g.source == "review"]
     if review_listed:
         known.append("What the field does not yet know centres on " + join_items(_lc(g.title) for g in review_listed) + ".")
+    other_gaps = [g for g in inputs.gaps if g.source != "review"]
+    if other_gaps:
+        known.append(("The studies themselves also leave open " if review_listed else "The studies themselves leave open ")
+                     + join_items(_lc(g.title) for g in other_gaps) + ".")
     lines += [" ".join(known), ""]
 
     # 1.2 Phase 2: the methodology
@@ -764,7 +828,16 @@ def build_conclusion(inputs: ConclusionInputs) -> str:
         offers.append("an independent check of findings so far reported by one study only")
     if review_listed:
         offers.append("progress on " + _lc(review_listed[0].title))
-    contribution = [f"This study can advance research on {topic} by providing " + join_items(offers or ["a further, comparable data point"]) + "."]
+    contribution = [
+        f"This {inputs.review_type} itself adds to the field by bringing {_count(n, 'study', 'studies')} on {topic} "
+        f"together across {_count(len({s.design for s in studies}), 'research design', 'research designs')}, "
+        + (f"identifying {_count(len(themes), 'finding', 'findings')} reported by more than one study and separating "
+           "consistent from contested evidence, " if themes else "showing that no finding is yet replicated, ")
+        + f"and turning {_count(len(inputs.gaps), 'gap', 'gaps')} into {_count(len(inputs.directions), 'concrete direction', 'concrete directions')} "
+        f"with a matched design ({_a(design)}).",
+        f"Building on it, this study can advance research on {topic} by providing "
+        + join_items(offers or ["a further, comparable data point"]) + ".",
+    ]
     lines += ["### 1.4 Contribution", "", " ".join(contribution), "", markers.marker(
         markers.YOUR_CONTRIBUTION,
         "State the contribution your results actually make: which finding they confirm, which they challenge or "
@@ -788,12 +861,17 @@ def build_conclusion(inputs: ConclusionInputs) -> str:
     if rec.components:
         limits.append("Within it, " + join_items([f"{_a(s.label)} {design_limit(s)}" for s in rec.components]) + ".")
     review_limit = REVIEW_METHOD_LIMITS.get(inputs.review_key)
-    limits.append("Finally, the review itself was assembled automatically from abstracts"
+    limits.append("The review itself was assembled automatically from abstracts"
                   + (f", and {review_limit}" if review_limit else "") + ", so studies or details outside them may be missing.")
+    limits += review_limitations(profiles)
     lines += ["### 1.5 Limitations", "", " ".join(limits), "", markers.marker(
         markers.YOUR_LIMITATIONS,
         "Describe the limitations of your study as it was carried out: sample and setting, measurement, response or "
         "attrition, analysis decisions, and how each may have affected your conclusions.",
+    ), "", markers.guidance(
+        markers.USER_SHOULD_VERIFY,
+        "Check the review's own limitations above against how you searched: add any databases, languages or "
+        "years you excluded, and remove any that do not apply.",
     ), ""]
 
     # 1.6 Closing
@@ -805,7 +883,8 @@ def build_conclusion(inputs: ConclusionInputs) -> str:
          else f"For practice, {audience} have no replicated finding to act on yet and should treat single-study results with caution."),
         f"For policy, {body} should {'build on the consistent findings while funding their replication' if consistent else 'commission further evidence before acting'}.",
         f"For research, the most pressing open question is this: {first_open.question}",
-        "Sections 2 and 3 develop these implications and directions in turn.",
+        f"Section 2 develops these implications, and Section 3 sets out {_count(len(inputs.directions), 'direction', 'directions')}: "
+        + join_items(_lc(d.title) for d in inputs.directions) + ".",
     ]
     lines += ["### 1.6 Concluding remarks", "", " ".join(closing), ""]
 
@@ -853,6 +932,14 @@ def build_conclusion(inputs: ConclusionInputs) -> str:
     lines += [f"### 2.4 {heading}", ""]
     for sub in subheadings:
         lines += [f"**{sub}.** {implications[sub]}", ""]
+    lines += ["### 2.5 Guidance for practitioners", "",
+              f"How {audience} can use these findings now, before further research settles them:", ""]
+    lines += practitioner_steps(inputs, consistent, divided, countries)
+    lines += ["", markers.guidance(
+        markers.OPTIONAL_POLISH,
+        "Tailor these steps to the organisation, sector or country your thesis addresses, and name the people "
+        "who would carry them out.",
+    ), ""]
 
     # 3. Future directions
     lines += ["## 3. Future Directions", "",
@@ -890,8 +977,11 @@ def build_conclusion(inputs: ConclusionInputs) -> str:
             "question your next study would ask.",
         ),
         "",
-        "*Phase 4 builds this conclusion from the papers' abstracts, the review and the Phase 2 and 3 analyses; check "
-        f"each claim against the papers. The directions and checks are listed in {inputs.slug}-conclusion-analysis.json.*",
+        markers.guidance(
+            markers.USER_SHOULD_VERIFY,
+            "Phase 4 builds this conclusion from the papers' abstracts, the review and the Phase 2 and 3 analyses; check "
+            f"each claim against the papers. The directions and checks are listed in {inputs.slug}-conclusion-analysis.json.",
+        ),
         "",
         "## References",
         "",
@@ -903,10 +993,32 @@ def build_conclusion(inputs: ConclusionInputs) -> str:
 
 # ---- quality checks ---------------------------------------------------------------------------
 
-def _words(text: str) -> List[str]:
-    # Citations are left out: the same "(Siam et al., 2024)" in two texts is attribution, not copying.
-    text = re.sub(r"\([^()]*\b(?:\d{4}|n\.d\.)\)", " ", text)
+# "Kumar et al. (2024)", "Lindsay (2025)", "Smith and Jones (2020)": narrative citations, which lists of
+# studies repeat across phases as attribution rather than copied wording.
+NARRATIVE_CITATION = re.compile(
+    r"\b[A-Z][\w'’-]*(?:\s+(?:[A-Z][\w'’-]*|de|van|von|der|da|del|la))*"
+    r"(?:\s+et\s+al\.?|\s+(?:and|&)\s+[A-Z][\w'’-]+)?\s*\((?:\d{4}|n\.d\.)[a-z]?\)"
+)
+
+
+def _words(text: str, names: Sequence[str] = ()) -> List[str]:
+    # Citations are left out: the same "(Siam et al., 2024)" or "Siam et al. (2024)" in two texts is
+    # attribution, not copying. So are `names`: the shared findings, gaps, directions, designs and
+    # fields every phase must call by the same name.
+    text = re.sub(r"\([^()]*\b(?:\d{4}|n\.d\.)\)", " ", NARRATIVE_CITATION.sub(" ", text))
+    for name in sorted(names, key=len, reverse=True):
+        if len(name.split()) >= 2:
+            text = re.sub(r"\b" + re.escape(name) + r"\b", " ", text, flags=re.IGNORECASE)
     return re.findall(r"[a-z0-9']+", text.lower())
+
+
+def shared_names(inputs: "ConclusionInputs") -> List[str]:
+    """Names Phases 1-4 share by design: findings, gaps, directions, the design and its strands, the fields."""
+    a = inputs.analysis
+    names = [t.term for t in a.themes] + [g.title for g in inputs.gaps] + [d.title for d in inputs.directions]
+    names += [a.recommendation.design.label, *(c.label for c in a.recommendation.components)]
+    names += [a.tradition.name, inputs.field_name or ""]
+    return [n for n in dict.fromkeys(n.strip().rstrip(".") for n in names) if n]
 
 
 def _shingles(words: Sequence[str]) -> List[Tuple[str, ...]]:
@@ -926,16 +1038,28 @@ def _prose(markdown: str) -> str:
     return "\n".join(kept)
 
 
-def copied_passages(text: str, sources: Dict[str, str]) -> Tuple[float, int, str]:
-    """(share of 6-word phrases found in any source, longest copied run in words, the source it is from)."""
-    words = _words(text)
+def _source_owners(sources: Dict[str, str], names: Sequence[str] = ()) -> Dict[Tuple[str, ...], str]:
+    """{6-word phrase: the first source containing it}."""
+    owners: Dict[Tuple[str, ...], str] = {}
+    for name, source in sources.items():
+        for shingle in _shingles(_words(source, names)):
+            owners.setdefault(shingle, name)
+    return owners
+
+
+def copied_passages(
+    text: str, sources: Dict[str, str], names: Sequence[str] = (), owners: Dict[Tuple[str, ...], str] = None
+) -> Tuple[float, int, str]:
+    """(share of 6-word phrases found in any source, longest copied run in words, the source it is from).
+
+    `owners` (from _source_owners) can be passed in when many texts are checked against the same sources.
+    """
+    words = _words(text, names)
     shingles = _shingles(words)
     if not shingles:
         return 0.0, 0, ""
-    owners: Dict[Tuple[str, ...], str] = {}
-    for name, source in sources.items():
-        for shingle in _shingles(_words(source)):
-            owners.setdefault(shingle, name)
+    if owners is None:
+        owners = _source_owners(sources, names)
     copied = [s in owners for s in shingles]
     longest, run, origin, best_origin = 0, 0, "", ""
     for i, hit in enumerate(copied):
@@ -944,6 +1068,121 @@ def copied_passages(text: str, sources: Dict[str, str]) -> Tuple[float, int, str
         if run and run + SHINGLE_WORDS - 1 > longest:
             longest, best_origin = run + SHINGLE_WORDS - 1, origin
     return sum(copied) / len(shingles), longest, best_origin
+
+
+# ---- de-duplication against Phases 1-3 ---------------------------------------------------------
+
+@dataclass
+class Reuse:
+    """A conclusion sentence that repeats earlier wording, and what was done about it."""
+    sentence: str
+    origin: str  # the source the longest shared run comes from
+    run: int  # longest shared run, in words
+    phases: List[str]  # every source sharing a 6-word phrase with the sentence
+    rewritten: str = ""  # the model's rewrite, "" if the sentence was kept (and flagged)
+
+
+def _rewritable_lines(markdown: str) -> List[int]:
+    """Indexes of the conclusion's own prose lines (not headings, markers, tables, notes or references)."""
+    indexes = []
+    for i, line in enumerate(markdown.splitlines()):
+        if line.startswith("## References"):
+            break
+        if (not line.strip() or line.startswith(("#", ">", "|", "- *")) or markers.CONCLUSION_MARKER_LINE.match(line)
+                or (line.startswith("*") and line.endswith("*") and not line.startswith("**"))):
+            continue
+        indexes.append(i)
+    return indexes
+
+
+def find_reuse(
+    markdown: str, sources: Dict[str, str], min_run: int = MAX_COPIED_RUN, names: Sequence[str] = ()
+) -> List[Reuse]:
+    """Sentences sharing a run of `min_run`+ words with a source, or 6-word phrases with 2+ sources.
+
+    A phrase found in two or more phases is boilerplate the reader has already met twice; a long run
+    from one phase is copying. Both are worth rewriting.
+    """
+    # The papers are long enough to share stock phrases with anything, so only the phases count towards "2+".
+    phase_shingles = {name: set(_shingles(_words(text, names))) for name, text in sources.items() if name != "the papers"}
+    owners = _source_owners(sources, names)
+    lines = markdown.splitlines()
+    found: List[Reuse] = []
+    for i in _rewritable_lines(markdown):
+        for sentence in split_sentences(re.sub(r"^\*\*[^*]+\*\*\s*", "", lines[i])):
+            shingles = _shingles(_words(sentence, names))
+            if not shingles:
+                continue
+            phases = [name for name, own in phase_shingles.items() if any(s in own for s in shingles)]
+            _, run, origin = copied_passages(sentence, sources, names, owners)
+            if run >= min_run or len(phases) >= 2:
+                found.append(Reuse(sentence=sentence, origin=origin, run=run, phases=phases))
+    found.sort(key=lambda r: (-r.run, -len(r.phases)))
+    return found
+
+
+def _citations_and_numbers(text: str) -> Tuple[Set[str], Set[str]]:
+    cites = set(re.findall(r"\([^()]*\b(?:\d{4}|n\.d\.)\)", text)) | set(NARRATIVE_CITATION.findall(text))
+    numbers = set(re.findall(r"\b\d+(?:\.\d+)?%?", re.sub(r"\([^()]*\)", " ", text)))
+    return cites, numbers
+
+
+def rewrite_reused(synthesizer, reuse: Reuse, sources: Dict[str, str], names: Sequence[str] = ()) -> str:
+    """Asks the model to reword one sentence; "" unless the rewrite keeps its meaning, citations and numbers."""
+    answer = synthesizer.complete(
+        "You are an academic editor. You reword sentences from a thesis conclusion without changing their meaning.",
+        f"Sentence: {reuse.sentence}\n\nTask: Reword this sentence so it no longer repeats the wording of the earlier "
+        "chapters. Keep its meaning, every citation in parentheses, every author name and every number exactly. "
+        "Reply with the reworded sentence only.",
+        max_tokens=160,
+        temperature=0.5,
+    )
+    rewritten = normalize_whitespace(clean_response(answer)).strip("\"' ")
+    if not rewritten or rewritten[-1] not in ".!?":
+        return ""
+    cites, numbers = _citations_and_numbers(reuse.sentence)
+    new_cites, new_numbers = _citations_and_numbers(rewritten)
+    if cites - new_cites or numbers - new_numbers or new_cites - cites:
+        return ""
+    length = len(_words(rewritten)) / max(1, len(_words(reuse.sentence)))
+    if not 0.6 <= length <= 1.6 or len(split_sentences(rewritten)) > 2 or "**" in rewritten:
+        return ""
+    if grounding_score(rewritten, f"{reuse.sentence}\n" + "\n".join(sources.values())) < 0.7:
+        return ""
+    if copied_passages(rewritten, sources, names)[1] >= MAX_COPIED_RUN:
+        return ""
+    return rewritten
+
+
+def deduplicate(
+    markdown: str, sources: Dict[str, str], model: str = "", use_model: bool = True, names: Sequence[str] = ()
+) -> Tuple[str, List[Reuse]]:
+    """Rewrites conclusion sentences that repeat Phases 1-3 (find_reuse) before the quality checks run.
+
+    Uses the local model when allowed and available; sentences it can't reword safely are kept and
+    returned unrewritten, so they are listed in the analysis file as suggestions for the user.
+    """
+    reused = find_reuse(markdown, sources, names=names)
+    if not reused:
+        return markdown, []
+    logger.info("De-duplication: %d sentence(s) repeat wording from Phases 1-3", len(reused))
+    if use_model and model:
+        try:
+            with LLMSynthesizer(model=model) as synthesizer:
+                for item in reused[:MAX_REWRITES]:  # longest runs first
+                    item.rewritten = rewrite_reused(synthesizer, item, sources, names)
+        except (OllamaConnectionError, requests.RequestException) as exc:
+            logger.warning("Could not use the model to reword repeated sentences (%s); they are flagged instead", exc)
+    for item in reused:
+        if item.rewritten:
+            markdown = markdown.replace(item.sentence, item.rewritten, 1)
+        else:
+            logger.warning(
+                "Repeated wording kept (shared with %s; longest run %d words): %s",
+                ", ".join(item.phases) or item.origin, item.run, item.sentence[:120],
+            )
+    logger.info("De-duplication: reworded %d of %d sentence(s)", sum(bool(r.rewritten) for r in reused), len(reused))
+    return markdown, reused
 
 
 @dataclass
@@ -958,7 +1197,7 @@ def quality_checks(markdown: str, inputs: ConclusionInputs, sources: Dict[str, s
     checks: List[Check] = []
 
     prose = _prose(markdown)
-    share, run, origin = copied_passages(prose, sources)
+    share, run, origin = copied_passages(prose, sources, shared_names(inputs))
     checks.append(Check(
         "Not verbatim", share <= MAX_COPIED_SHARE and run < MAX_COPIED_RUN,
         f"{share:.0%} of 6-word phrases occur in Phases 1-3 or the papers (limit {MAX_COPIED_SHARE:.0%}); "
@@ -984,10 +1223,20 @@ def quality_checks(markdown: str, inputs: ConclusionInputs, sources: Dict[str, s
                         "names the review's gaps, the proposed design and every shared finding" if not absent
                         else "not mentioned: " + ", ".join(absent)))
 
+    # The Conclusion proper must name every shared finding, every gap and every future direction.
+    proper = markdown.split("## 2. Implications")[0].lower()
+    omitted = [t.term for t in a.themes if t.term.lower() not in proper]
+    omitted += [g.title for g in inputs.gaps if g.title.lower().rstrip(".") not in proper]
+    omitted += [d.title for d in inputs.directions if d.title.lower().rstrip(".") not in proper]
+    checks.append(Check("Covers every finding, gap and direction", not omitted,
+                        f"names {len(a.themes)} shared finding(s), {len(inputs.gaps)} gap(s) and {len(inputs.directions)} "
+                        "direction(s)" if not omitted else "not named in the Conclusion: " + ", ".join(omitted)))
+
     headings = ["## 1. Conclusion", "### 1.1 What the field knows", "### 1.2 How this study builds on it",
                 "### 1.3 What the analysis found", "### 1.4 Contribution", "### 1.5 Limitations",
                 "### 1.6 Concluding remarks", "## 2. Implications", "### 2.1 Practical implications",
-                "### 2.2 Policy implications", "### 2.3 Theoretical implications", "## 3. Future Directions"]
+                "### 2.2 Policy implications", "### 2.3 Theoretical implications", "### 2.5 Guidance for practitioners",
+                "## 3. Future Directions"]
     field_heading, subs = FIELD_HEADINGS[a.tradition.key]
     expected = headings + [f"### 2.4 {field_heading}"] + [f"**{s}.**" for s in subs]
     lacking = [h.strip("#*. ") for h in expected if h not in markdown]
@@ -1050,7 +1299,7 @@ def phase_sources(review: ReviewDocument, corpus: Corpus, inputs: ConclusionInpu
     return sources
 
 
-def analysis_json(inputs: ConclusionInputs, source_path: Path, checks: Sequence[Check]) -> Dict:
+def analysis_json(inputs: ConclusionInputs, source_path: Path, checks: Sequence[Check], reused: Sequence[Reuse] = ()) -> Dict:
     a = inputs.analysis
     strength, why = evidence_strength(a.profiles, a.themes)
     return {
@@ -1072,6 +1321,11 @@ def analysis_json(inputs: ConclusionInputs, source_path: Path, checks: Sequence[
         "research_gaps": [asdict(g) for g in inputs.gaps],
         "future_directions": [asdict(d) for d in inputs.directions],
         "quality_checks": [asdict(c) for c in checks],
+        # Sentences repeating Phases 1-3: reworded by the model, or kept and listed here for the user to reword.
+        "deduplication": {
+            "reworded": [asdict(r) for r in reused if r.rewritten],
+            "rewrite_suggestions": [asdict(r) for r in reused if not r.rewritten],
+        },
     }
 
 
@@ -1104,13 +1358,21 @@ def run_phase4(args) -> List[Path]:
         directions=directions, field_name=corpus.field, bibliography=bibliography,
     )
     markdown = build_conclusion(inputs)
-    checks = quality_checks(markdown, inputs, phase_sources(review, corpus, inputs, output_dir, base, bibliography), corpus)
+    sources = phase_sources(review, corpus, inputs, output_dir, base, bibliography)
+    markdown, reused = deduplicate(markdown, sources, args.model, use_model=not args.no_llm, names=shared_names(inputs))
+    checks = quality_checks(markdown, inputs, sources, corpus)
     for check in checks:
         (logger.info if check.passed else logger.warning)("Check %s: %s (%s)", check.name, "passed" if check.passed else "FAILED", check.detail)
 
-    written = Exporter(output_dir=output_dir).export_all(markdown, f"{slug}-conclusion", formats)
+    exporter = Exporter(output_dir=output_dir)
+    written = exporter.export_all(markdown, f"{slug}-conclusion", formats)
+    # The one-page executive summary is drawn from the finished conclusion, in the same formats.
+    summary = build_executive_summary(markdown, topic, getattr(args, "degree", None) or "")
+    written += exporter.export_all(summary, f"{slug}-executive-summary", formats)
     analysis_path = output_dir / f"{slug}-conclusion-analysis.json"
-    analysis_path.write_text(json.dumps(analysis_json(inputs, input_path, checks), indent=2, ensure_ascii=False), encoding="utf-8")
+    data = analysis_json(inputs, input_path, checks, reused)
+    data["citation_check"] = log_citation_check(markdown, corpus, "Phase 4")
+    analysis_path.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
     written.append(analysis_path)
     for path in written:
         logger.info("Written: %s", path)

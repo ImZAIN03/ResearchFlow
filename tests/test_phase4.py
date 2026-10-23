@@ -147,7 +147,8 @@ def test_run_phase4_passes_its_quality_checks(path, tmp_path):
         pytest.skip(f"{path.name} not found")
     written = {p.name for p in run_phase4(args_for(path, tmp_path))}
     slug = path.name.split(".")[0]
-    assert written == {f"{slug}-conclusion.md", f"{slug}-conclusion.docx", f"{slug}-conclusion-analysis.json"}
+    assert written == {f"{slug}-conclusion.md", f"{slug}-conclusion.docx", f"{slug}-conclusion-analysis.json",
+                       f"{slug}-executive-summary.md", f"{slug}-executive-summary.docx"}
     data = json.loads((tmp_path / f"{slug}-conclusion-analysis.json").read_text(encoding="utf-8"))
     failed = [c for c in data["quality_checks"] if not c["passed"]]
     assert not failed, failed

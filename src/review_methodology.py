@@ -8,6 +8,7 @@ methodology flowchart (Total Papers Found -> Papers Filtered -> Papers Selected)
 from __future__ import annotations
 
 import datetime as dt
+import math
 import re
 from collections import Counter
 from dataclasses import dataclass, field
@@ -222,6 +223,33 @@ def screen(
     return eligible, excluded
 
 
+# Weights of the selection score (rank_papers): how well the paper matches the queries matters most,
+# then its scholarly impact, then how recent it is.
+RANK_WEIGHTS = {"relevance": 0.5, "citations": 0.3, "recency": 0.2}
+RECENCY_HALF_LIFE = 5  # years after which a paper's recency score halves
+
+
+def rank_score(paper: Paper, queries: Sequence[str], max_citations: int, newest: int) -> Tuple[float, Dict[str, float]]:
+    """(score 0-1, its components) for one paper; citations are log-scaled so a few classics don't dominate."""
+    relevance = max((term_share(paper, q) for q in queries), default=1.0)
+    citations = math.log1p(paper.citation_count) / math.log1p(max_citations) if max_citations else 0.0
+    age = max(0, newest - paper.year) if paper.year else 2 * RECENCY_HALF_LIFE
+    recency = 0.5 ** (age / RECENCY_HALF_LIFE)
+    parts = {"relevance": relevance, "citations": citations, "recency": recency}
+    return sum(RANK_WEIGHTS[k] * v for k, v in parts.items()), parts
+
+
+def rank_papers(papers: Sequence[Paper], queries: Sequence[str]) -> List[Paper]:
+    """Eligible papers ordered by a combined relevance, citation and recency score (best first)."""
+    if not papers:
+        return []
+    max_citations = max(p.citation_count for p in papers)
+    newest = max((p.year for p in papers if p.year), default=dt.date.today().year)
+    scored = [(rank_score(p, queries, max_citations, newest)[0], p) for p in papers]
+    scored.sort(key=lambda item: (-item[0], -(item[1].citation_count), -(item[1].year or 0)))
+    return [p for _, p in scored]
+
+
 def _year_span(year_from: Optional[int], year_to: Optional[int]) -> str:
     if year_from and year_to:
         return f"between {year_from} and {year_to}"
@@ -262,7 +290,9 @@ def protocol_paragraphs(
         ) + "."
     paragraphs.append(screening)
     selection = (
-        f"The {flow.filtered} eligible records were ranked by citation count and recency, and the top "
+        f"The {flow.filtered} eligible records were ranked by a combined score of relevance to the search queries "
+        f"({RANK_WEIGHTS['relevance']:.0%}), citation count ({RANK_WEIGHTS['citations']:.0%}, log-scaled) and recency "
+        f"({RANK_WEIGHTS['recency']:.0%}, halving every {RECENCY_HALF_LIFE} years), and the top "
         f"{min(max_papers, flow.filtered)} were selected for full review"
     )
     selection += " using their titles and abstracts." if not methodology.full_text else (

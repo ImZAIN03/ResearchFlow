@@ -36,6 +36,133 @@ TABLE_COL_WIDTHS = (34, 22, 10, 50, 46, 28)  # mm, fits the 190 mm text width of
 TABLE_FIRST_HEADER = "Paper Title"  # the widths are for the Results & Analysis table; other tables share the width evenly
 
 
+# ---- executive summary --------------------------------------------------------------------------
+
+SUMMARY_MAX_WORDS = 550  # about one page
+SUMMARY_PARTS = (  # (label, conclusion heading it is drawn from, sentences taken)
+    ("What the field knows", "1.1", 3),
+    ("How the proposed study builds on it", "1.2", 2),
+    ("What the analysis found", "1.3", 2),
+    ("Contribution", "1.4", 2),
+    ("Limitations", "1.5", 2),
+)
+
+
+def _subsections(markdown: str) -> dict:
+    """{"1.1": [prose lines], ...} for the conclusion's numbered "### n.n" subsections."""
+    sections: dict = {}
+    current = None
+    for line in markdown.splitlines():
+        heading = re.match(r"^###\s+(\d+\.\d+)\s", line)
+        if heading:
+            current = heading.group(1)
+            sections[current] = []
+        elif line.startswith("## "):
+            current = None
+        elif current and line.strip():
+            sections[current].append(line.strip())
+    return sections
+
+
+def _prose_lines(lines: List[str]) -> List[str]:
+    """Body text only: no marker prompts, guidance notes, tables or blockquotes."""
+    return [
+        line for line in lines
+        if not line.startswith(("|", ">", "**[", "*[")) and not (line.startswith("*") and line.endswith("*") and not line.startswith("**"))
+    ]
+
+
+def build_executive_summary(conclusion: str, topic: str, degree: str = "") -> str:
+    """A one-page executive summary drawn from a Phase 4 conclusion (no new claims are added).
+
+    Takes the opening sentences of each Conclusion subsection, the practical guidance, the
+    highest-priority future directions and the places the user must still fill, and closes with the
+    draft's readiness for the chosen degree (thesis_standards).
+    """
+    from .critical_gaps import CONCLUSION_MARKER_LINE, USER_MUST_ADD, guidance
+    from .llm_synthesis import split_sentences
+    from .thesis_standards import PHASE_READINESS, degree_standard
+
+    sections = _subsections(conclusion)
+    standard = degree_standard(degree)
+    lines = [
+        f"# Executive Summary: {topic}",
+        "",
+        "*A one-page summary of the conclusion, implications and future directions, for supervisors, committees and busy readers*",
+        "",
+    ]
+    for label, key, count in SUMMARY_PARTS:
+        # Lists of several citations are dropped: a one-page summary names findings, not every source.
+        prose = re.sub(r"\s*\((?:[^()]*\b(?:\d{4}|n\.d\.)\s*;){1,}[^()]*\)", "", " ".join(_prose_lines(sections.get(key, []))))
+        sentences = split_sentences(prose)
+        if key == "1.5":
+            # The review's own limitations matter most to a reader of the summary.
+            own = [s for s in sentences if s.startswith(("The review itself", "Papers were selected", "Only ", "None of the abstracts"))]
+            sentences = own or sentences
+        sentences = sentences[:count]
+        if sentences:
+            lines += [f"**{label}.** {' '.join(sentences)}", ""]
+
+    practice = [re.sub(r"^\d+\.\s*", "", l) for l in sections.get("2.5", []) if re.match(r"^\d+\.\s", l)]
+    if not practice:
+        practice = [l[2:] for l in sections.get("2.1", []) if l.startswith("- ")]
+    if practice:
+        lines += ["**For practitioners.**", ""] + [f"- {split_sentences(p)[0] if split_sentences(p) else p}" for p in practice[:3]] + [""]
+
+    rows = [l for l in conclusion.splitlines() if l.startswith("| ") and not l.startswith(("| Direction", "|---"))]
+    directions = []
+    for row in rows:
+        cells = [c.strip() for c in row.strip("|").split("|")]
+        if len(cells) == 5:
+            title, kind, _, timeline, feasibility = cells
+            directions.append((title, kind, timeline, feasibility))
+    if directions:
+        ranked = sorted(directions, key=lambda d: {"High": 0, "Medium": 1, "Low": 2}.get(d[3], 3))[:3]
+        lines += ["**Priority directions.**", ""]
+        lines += [f"- {title} ({kind.lower()}; {timeline[:1].lower() + timeline[1:]}; feasibility {feasibility.lower()})"
+                  for title, kind, timeline, feasibility in ranked]
+        lines.append("")
+
+    prompts = []
+    for line in conclusion.splitlines():
+        match = CONCLUSION_MARKER_LINE.match(line)
+        if match:
+            prompt = line[match.end():].strip()
+            prompts.append(f"{match.group(1)} {split_sentences(prompt)[0] if split_sentences(prompt) else prompt}")
+    if prompts:
+        lines += ["**What only you can add.**", ""] + [f"- {p}" for p in dict.fromkeys(prompts)] + [""]
+
+    lines += [
+        f"**Readiness for {standard.name}.** ResearchFlow targets {standard.readiness}% of an approval-ready draft at "
+        f"this level (Phases 1-4: " + ", ".join(f"{phase.split(' (')[0]} {pct}%" for phase, pct in PHASE_READINESS.items())
+        + f"). The remaining {100 - standard.readiness}% is your own data, analysis and argument, which examiners at this "
+        f"level judge on {', '.join(standard.examiner_focus[:2])} and {standard.examiner_focus[2]}.",
+        "",
+        guidance(USER_MUST_ADD, "Replace the summary of findings with your own results once your study is complete."),
+        "",
+    ]
+    summary = "\n".join(lines)
+    words = len(re.findall(r"\w+", summary))
+    if words > SUMMARY_MAX_WORDS:
+        logger.info("Executive summary is %d words (target %d); trimming the longest parts", words, SUMMARY_MAX_WORDS)
+        summary = _trim_summary(summary)
+    return summary
+
+
+def _trim_summary(summary: str) -> str:
+    """Shortens each labelled paragraph to its first sentence until the summary fits about one page."""
+    from .llm_synthesis import split_sentences
+
+    out = []
+    for line in summary.splitlines():
+        match = re.match(r"^(\*\*[^*]+\.\*\*) (.+)$", line)
+        if match and len(re.findall(r"\w+", line)) > 45 and not line.startswith("**Readiness"):
+            first = split_sentences(match.group(2))[:1]
+            line = f"{match.group(1)} {first[0]}" if first else line
+        out.append(line)
+    return "\n".join(out)
+
+
 def _table_rows(lines: List[str]) -> List[List[str]]:
     """Cells of a markdown pipe table, without its |---| separator row."""
     rows = []

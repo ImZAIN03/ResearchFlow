@@ -19,10 +19,13 @@ from dataclasses import dataclass, field
 from typing import List, Optional, Sequence, Tuple
 
 from .llm_synthesis import (
+    CITATION,
     FUTURE_WORK_REMARK,
+    HYBRID_KEYWORD_LEAD,
     META_REFERENCE,
     PLACEHOLDER_PATTERN,
     SYNTH_MAX_COPIED,
+    SYNTH_MIN_GROUNDING,
     LLMSynthesizer,
     PaperSummary,
     cite,
@@ -33,11 +36,15 @@ from .llm_synthesis import (
     join_items,
     method_profile,
     normalize_whitespace,
+    paper_focus,
+    parse_gaps,
     pick_sentences,
+    prose_issue,
     shared_themes,
     sources_block,
     split_sentences,
     synthesis_issue,
+    thesis_voice,
 )
 
 logger = logging.getLogger(__name__)
@@ -62,14 +69,28 @@ class SectionSpec:
     instruction: str  # section-specific writing task; {topic} and {review} (e.g. "systematic review") are filled in
 
 
+# Shared by every section prompt: the register a thesis examiner expects.
+SECTION_RULES = (
+    "Write continuous prose in the voice of a thesis: no headings, bullet points or labels; never 'we', "
+    "'our', 'this paper' or 'in this paper'; name specific concepts instead of vague words such as "
+    "'various', 'important' or 'discuss'; paraphrase, never copy sentences from the papers."
+)
+
 SECTION_SPECS = [
     SectionSpec(
         "introduction",
         "Introduction",
         ("intro", "background", "overview"),
-        "Write the Introduction of this {review} in about 120 words (4-5 sentences): explain what {topic} "
-        "is, why it matters, which questions the papers above investigate, and what this {review} sets "
-        "out to examine.",
+        "Write the Introduction of this {review} in 5-6 sentences (about 150 words) that follow this "
+        "structure: (1) establish what {topic} is and why it matters, grounded in the papers above; "
+        "(2) state which questions the papers investigate, citing them as (Author, Year), with every claim "
+        "taken from the papers; (3) identify the problem or gap in that work that motivates the review; "
+        "(4) close with a one-sentence thesis statement beginning 'This {review} examines' or 'This "
+        "{review} argues'. " + SECTION_RULES + "\nExample of the expected style (different topic, do "
+        "not reuse it): \"Antibiotic resistance now limits treatment options in routine care. Studies "
+        "trace it to prescribing habits (Lee, 2020) and to agricultural use (Diaz, 2021), yet how these "
+        "sources interact remains unclear. This review therefore examines what the evidence shows about "
+        "each pathway and where it falls short.\"",
     ),
     SectionSpec(
         "methodology",
@@ -77,24 +98,47 @@ SECTION_SPECS = [
         ("method", "approach", "design", "data"),
         "Write about 100 words (3-4 sentences) comparing how the papers above do their research (e.g. "
         "surveys, experiments, case studies, conceptual frameworks), what evidence they rely on, and how "
-        "these approaches differ in strength. Cite (Author, Year). Use your own words, do not copy sentences.",
+        "these approaches differ in strength. Cite (Author, Year). " + SECTION_RULES,
     ),
     SectionSpec(
         "discussion",
         "Discussion",
         ("discussion", "finding", "result", "analysis"),
-        "Write the Discussion of this {review} in about 120 words (4-5 sentences): explain what the "
-        "papers above show when read together, where their findings agree or disagree, and what that "
-        "means for {topic}. Cite (Author, Year). Use your own words, do not copy sentences.",
+        "Write the Discussion of this {review} in 5-6 sentences (about 140 words): (1) state what the "
+        "papers above show when read together; (2) say where their findings agree and where they "
+        "disagree, citing (Author, Year) on both sides; (3) explain how their methods account for those "
+        "differences; (4) state what this means for {topic}. " + SECTION_RULES,
     ),
     SectionSpec(
         "conclusion",
         "Conclusion",
         ("conclu", "summary", "final"),
-        "Write the Conclusion of this {review} in about 80 words (3 sentences): summarize what the papers "
-        "above collectively show about {topic} and why it matters.",
+        "Write the Conclusion of this {review} in 4-5 sentences (about 120 words) that draw together the "
+        "whole review: (1) what the papers collectively show about {topic}, citing (Author, Year); (2) how "
+        "the papers' methods support or limit those conclusions; (3) which of the research gaps listed "
+        "above remain most pressing; (4) what follows for future research or practice. Introduce no new "
+        "facts. " + SECTION_RULES + "\nExample of the expected style (different topic, do not reuse it): "
+        "\"Taken together, the studies show that prescribing habits drive resistance more consistently than "
+        "agricultural use (Lee, 2020; Diaz, 2021). Because most of this evidence is observational, causal "
+        "claims remain tentative. The interaction between the two pathways is the most pressing gap, and "
+        "longitudinal surveillance would allow future work to close it.\"",
     ),
 ]
+# Sections whose prompt also gets the synthesis and research gaps, so they can draw the review together.
+SYNTHESIZING_SECTIONS = {"introduction", "conclusion"}
+FIRST_PERSON = re.compile(r"\b(?:[Ww]e|[Oo]ur|us)\b")  # case-sensitive "us", so "US" (the country) passes
+# The Introduction frames every later claim, so it is held to a higher grounding bar than other sections.
+INTRODUCTION_GROUNDING = 0.85
+# "This review examines ...", "This narrative review therefore sets out to ...": the thesis statement.
+THESIS_STATEMENT = re.compile(
+    r"\b[Tt]his (?:\w+ )?(?:review|thesis|study|chapter|meta-analysis)\b[^.]{0,80}?\b(?:examines?|argues?|"
+    r"investigates?|assesses?|sets? out|aims?|asks?|evaluates?|maps?|synthesi[sz]es?|addresses?|establish(?:es)?|"
+    r"identif(?:y|ies)|shows?|explores?)\b"
+)
+
+
+def section_grounding(spec: Optional["SectionSpec"]) -> float:
+    return INTRODUCTION_GROUNDING if spec is not None and spec.key == "introduction" else SYNTH_MIN_GROUNDING
 
 FINDING_KEYWORDS = (
     "we show", "we find", "we found", "results", "demonstrate", "reveal", "suggest", "indicate",
@@ -154,7 +198,9 @@ class OutlineGenerator:
             if index is not None:
                 claimed.add(index)
             draft = drafted[index] if index is not None else None
-            section = self._resolve_section(spec, draft, topic, review, context, summaries, synthesis, written)
+            section = self._resolve_section(
+                spec, draft, topic, review, context, summaries, synthesis, written, research_gaps
+            )
             written.extend(section.points)
             outline_sections.append(section)
         return Outline(title=self._valid_title(title, topic), sections=outline_sections)
@@ -199,45 +245,153 @@ class OutlineGenerator:
         summaries: Sequence[PaperSummary],
         synthesis: str,
         written: Sequence[str] = (),
+        research_gaps: str = "",
     ) -> OutlineSection:
+        """Outline draft, else a section-specific rewrite, else a model polish of the default, else the default."""
         if draft is not None:
             points = self._clean_points([fix_against_source(p, context) for p in draft.points], written)
-            problem = synthesis_issue("\n".join(points), context) or content_issue(
-                "\n".join(points), min_sentences=2, min_words=15, source=context
-            )
-            if problem is None and copied_ratio("\n".join(points), context) > SYNTH_MAX_COPIED:
-                problem = "copied the source summaries"
+            problem = self._section_issue("\n".join(points), context, min_words=15, spec=spec)
             if problem is None:
                 return OutlineSection(spec.heading, points, origin="llm")
             logger.info("Outline draft for %r rejected (%s)", spec.heading, problem)
 
-        points = self._write_section(spec, topic, review, context, written)
+        extra = self._phase_context(spec, synthesis, research_gaps)
+        points = self._write_section(spec, topic, review, context, written, extra)
         if points:
             return OutlineSection(spec.heading, points, origin="llm-section")
 
+        default = self._default_points(spec, topic, summaries, synthesis, research_gaps, review)
+        default = self._clean_points(default, written) or default
+        polished = self._polish_default(spec, topic, review, context, default, written, extra)
+        if polished:
+            logger.info("Section %r written by the model from the paper-derived outline", spec.heading)
+            return OutlineSection(spec.heading, polished, origin="llm-polished")
         logger.warning("Using paper-derived default content for section %r", spec.heading)
-        points = self._default_points(spec, topic, summaries, synthesis)
-        return OutlineSection(spec.heading, self._clean_points(points, written) or points, origin="fallback")
+        return OutlineSection(spec.heading, default, origin="fallback")
+
+    @staticmethod
+    def _phase_context(spec: SectionSpec, synthesis: str, research_gaps: str) -> str:
+        """The synthesis and research gaps, for sections that frame or close the whole review."""
+        if spec.key not in SYNTHESIZING_SECTIONS:
+            return ""
+        parts = []
+        if synthesis:
+            parts.append(f"Literature synthesis (already written):\n{normalize_whitespace(synthesis)[:900]}")
+        gaps = parse_gaps(research_gaps)
+        if gaps:
+            parts.append("Research gaps:\n" + "\n".join(
+                f"- {title}: {split_sentences(desc)[0] if split_sentences(desc) else desc}" for title, desc in gaps[:4]
+            ))
+        return "\n\n".join(parts)
+
+    def _section_issue(
+        self, text: str, context: str, min_words: int = 25, spec: Optional[SectionSpec] = None
+    ) -> Optional[str]:
+        """Shared validation for model-written sections: no copying, prose only, grounded (80%, the
+        Introduction 85%), and an Introduction must state what the review sets out to do."""
+        if copied_ratio(text, context) > SYNTH_MAX_COPIED:
+            return "copied the source summaries instead of writing the section"
+        if FIRST_PERSON.search(text):
+            return "written in the first person instead of thesis voice"
+        if spec is not None and spec.key == "introduction" and not THESIS_STATEMENT.search(text):
+            return "has no thesis statement (what this review examines or argues)"
+        return (
+            synthesis_issue(text, context)
+            or content_issue(text, min_sentences=2, min_words=min_words, source=context)
+            or prose_issue(text, context, section_grounding(spec))
+        )
 
     def _write_section(
-        self, spec: SectionSpec, topic: str, review: str, context: str, written: Sequence[str] = ()
+        self,
+        spec: SectionSpec,
+        topic: str,
+        review: str,
+        context: str,
+        written: Sequence[str] = (),
+        extra: str = "",
     ) -> List[str]:
         system = (
-            "You are a research assistant writing one section of a literature-review paper. Use only "
-            "facts from the provided papers. Write plain sentences, no headings, no placeholder text."
+            "You are an academic writing one section of a thesis-level literature review. Use only facts "
+            "from the provided papers. Write plain sentences, no headings, no placeholder text."
         )
-        user = f"Research topic: {topic}\n\nPapers:\n{context}\n\nTask: {spec.instruction.format(topic=topic, review=review)}"
+        user = (
+            f"Research topic: {topic}\n\nPapers:\n{context}\n\n"
+            + (f"{extra}\n\n" if extra else "")
+            + f"Task: {spec.instruction.format(topic=topic, review=review)}"
+        )
+        source = f"{context}\n{extra}"
 
         def validate(text: str) -> Optional[str]:
             points = self._clean_points(split_sentences(text), written)
-            if copied_ratio("\n".join(points), context) > SYNTH_MAX_COPIED:
-                return "copied the source summaries instead of writing the section"
-            return synthesis_issue(text, context) or content_issue("\n".join(points), min_sentences=2, min_words=25, source=context)
+            return self._section_issue("\n".join(points), source, spec=spec)
 
         text = self.synthesizer.complete_validated(
-            system, user, max_tokens=250, min_sentences=2, validator=validate, label=f"{spec.heading} section"
+            system, user, max_tokens=320, min_sentences=2, validator=validate, label=f"{spec.heading} section"
         )
-        return self._clean_points(split_sentences(fix_against_source(text, context)), written) if text else []
+        return self._finish(text, source, written)
+
+    def _polish_default(
+        self,
+        spec: SectionSpec,
+        topic: str,
+        review: str,
+        context: str,
+        default: Sequence[str],
+        written: Sequence[str] = (),
+        extra: str = "",
+    ) -> List[str]:
+        """Asks the model to rewrite the paper-derived default as thesis prose: an easier task than writing it.
+
+        The rewrite keeps the default's facts and citations, so it is grounded against the papers plus
+        the default itself. Returns [] if the rewrite is rejected.
+        """
+        outline = " ".join(default)
+        system = (
+            "You are an academic editor. Rewrite draft text as polished thesis prose without adding facts."
+        )
+        user = (
+            f"Research topic: {topic}\n\nPapers:\n{context}\n\n"
+            + (f"{extra}\n\n" if extra else "")
+            + f"Draft {spec.heading}:\n{outline}\n\n"
+            f"Task: Rewrite the draft {spec.heading} of this {review} as 4-5 sentences of fluent, connected "
+            "thesis prose. Keep every fact and every (Author, Year) citation from the draft, link the "
+            f"sentences into an argument about {topic}, and add nothing the papers do not support. "
+            + SECTION_RULES
+        )
+        source = f"{context}\n{extra}\n{outline}"
+        required = [author for author, _ in CITATION.findall(outline)]
+
+        def validate(text: str) -> Optional[str]:
+            points = self._clean_points(split_sentences(text), written)
+            joined = "\n".join(points)
+            missing = [a for a in dict.fromkeys(required) if a not in joined]
+            if missing:
+                return f"dropped citations from the draft ({', '.join(missing[:3])})"
+            # Copying the draft back is allowed (it is ours); copying the papers is not.
+            if copied_ratio(joined, context) > SYNTH_MAX_COPIED:
+                return "copied the source summaries instead of writing the section"
+            if FIRST_PERSON.search(joined):
+                return "written in the first person instead of thesis voice"
+            if spec.key == "introduction" and not THESIS_STATEMENT.search(joined):
+                return "dropped the thesis statement from the draft"
+            return (
+                synthesis_issue(joined, source)
+                or content_issue(joined, min_sentences=3, min_words=40, source=source)
+                or prose_issue(joined, source, section_grounding(spec))
+            )
+
+        text = self.synthesizer.complete_validated(
+            system, user, max_tokens=320, min_sentences=3, retries=0, validator=validate,
+            label=f"{spec.heading} polish",
+        )
+        return self._finish(text, source, written)
+
+    def _finish(self, text: str, source: str, written: Sequence[str]) -> List[str]:
+        """Accepted model text as section points, in thesis voice, without repeats of earlier sections."""
+        if not text:
+            return []
+        text = thesis_voice(fix_against_source(text, source), first_person=False)
+        return self._clean_points(split_sentences(text), written)
 
     @staticmethod
     def _clean_points(points: Sequence[str], already_written: Sequence[str] = ()) -> List[str]:
@@ -291,18 +445,22 @@ class OutlineGenerator:
         topic: str,
         summaries: Sequence[PaperSummary],
         synthesis: str,
+        research_gaps: str = "",
+        review: str = "literature review",
     ) -> List[str]:
         if not summaries:
             return self._clean_points(pick_sentences(synthesis, limit=3)) or [
-                f"This section discusses {topic}; no paper summaries were available to draw on."
+                f"This section concerns {topic}; no paper summaries were available to draw on."
             ]
+        summaries = list(summaries)
+        gap_titles = [title for title, _ in parse_gaps(research_gaps) if title and " by " not in title]
         builders = {
-            "introduction": self._default_introduction,
-            "methodology": self._default_methodology,
-            "discussion": self._default_findings,
-            "conclusion": self._default_conclusion,
+            "introduction": lambda: self._default_introduction(topic, summaries, gap_titles, review),
+            "methodology": lambda: self._default_methodology(topic, summaries),
+            "discussion": lambda: self._default_findings(topic, summaries),
+            "conclusion": lambda: self._default_conclusion(topic, summaries, gap_titles, review),
         }
-        return self._clean_points(builders[spec.key](topic, list(summaries)))
+        return self._clean_points(builders[spec.key]())
 
     @staticmethod
     def _year_range(summaries: List[PaperSummary]) -> str:
@@ -311,17 +469,42 @@ class OutlineGenerator:
             return ""
         return f" published in {years[0]}" if years[0] == years[-1] else f" published between {years[0]} and {years[-1]}"
 
-    def _default_introduction(self, topic: str, summaries: List[PaperSummary]) -> List[str]:
-        # Built from titles and metadata only, so the abstract sentences stay available for the
-        # Literature Review and Discussion sections (sections may not repeat each other's points).
-        titles = "; ".join(f"\"{s.paper.title}\" {cite(s.paper)}" for s in summaries[:4])
-        points = [f"This report reviews {len(summaries)} papers on {topic}{self._year_range(summaries)}: {titles}."]
+    @staticmethod
+    def _lower_first(text: str) -> str:
+        return text[0].lower() + text[1:] if text[1:2].islower() else text
+
+    def _default_introduction(
+        self, topic: str, summaries: List[PaperSummary], gap_titles: Sequence[str] = (), review: str = "literature review"
+    ) -> List[str]:
+        # Thesis voice, built from the papers' subjects, themes and gaps rather than their abstracts, so
+        # the abstract sentences stay available for the Literature Review and Discussion sections
+        # (sections may not repeat each other's points). Structure: context, questions, problem, aim.
+        foci = join_items(f"{paper_focus(s.paper)} {cite(s.paper)}" for s in summaries[:4])
+        points = [
+            f"Research on {topic} has developed along several lines, from {foci}"
+            + (f", with {len(summaries) - 4} further studies extending this work" if len(summaries) > 4 else "") + "."
+        ]
         themes = shared_themes(summaries, exclude=topic)
         if themes:
-            points.append(f"Recurring themes across these works include {join_items(themes)}.")
-        venues = sorted({s.paper.venue for s in summaries if s.paper.venue})
-        if venues:
-            points.append(f"The papers appeared in {', '.join(venues[:4])}.")
+            points.append(
+                f"What connects these studies{self._year_range(summaries)} is a shared concern with "
+                f"{join_items(themes)}, which frames the questions they ask about {topic}."
+            )
+        designs = sorted({method_profile(s.paper) for s in summaries})
+        if gap_titles:
+            points.append(
+                f"Yet the literature leaves open {join_items(self._lower_first(t) for t in gap_titles[:3])}, "
+                "so its conclusions cannot yet be taken as settled."
+            )
+        else:
+            points.append(
+                f"Yet the evidence rests on {join_items(designs)}, so it remains unclear how far its conclusions "
+                "hold beyond the settings studied."
+            )
+        points.append(
+            f"This {review} therefore examines what the existing studies establish about {topic}, how their "
+            "methods shape those conclusions, and where further research is needed."
+        )
         return points
 
     # Defaults compare the papers (themes, research designs) rather than pasting abstract sentences,
@@ -364,6 +547,7 @@ class OutlineGenerator:
                 and not sentence.rstrip().endswith("?")
                 and not CONTEXT_DEPENDENT.match(sentence)
                 and not FUTURE_WORK_REMARK.search(sentence)
+                and not sentence.startswith(HYBRID_KEYWORD_LEAD)  # a keyword list, not a finding
             )
 
         for s in summaries:
@@ -377,17 +561,29 @@ class OutlineGenerator:
                 points.append(f"{finding.rstrip('.')} {cite(s.paper)}.")
         return points
 
-    def _default_conclusion(self, topic: str, summaries: List[PaperSummary]) -> List[str]:
+    def _default_conclusion(
+        self, topic: str, summaries: List[PaperSummary], gap_titles: Sequence[str] = (), review: str = "literature review"
+    ) -> List[str]:
+        # Draws the review together: what the literature shows, how its methods qualify that, which
+        # gaps remain and what follows, in that order.
         themes = shared_themes(summaries, exclude=topic)
         designs = sorted({method_profile(s.paper) for s in summaries})
+        cites = "; ".join(cite(s.paper).strip("()") for s in summaries[:5])
         points = [
-            f"Across the {len(summaries)} papers reviewed, research on {topic} centres on "
-            f"{join_items(themes) if themes else 'a small set of recurring themes'}.",
-            f"The evidence comes from {join_items(designs)}, so the field's conclusions rest on a "
-            f"{'narrow' if len(designs) == 1 else 'mixed'} methodological base.",
-            f"Together these works indicate that {topic} remains an active area where the open "
-            "questions identified in this review warrant further study.",
+            f"Taken together, the {len(summaries)} studies in this {review} show that research on {topic} "
+            f"centres on {join_items(themes) if themes else 'a small set of recurring concerns'} ({cites}).",
+            f"Because this evidence comes from {join_items(designs)}, the field's conclusions rest on a "
+            f"{'narrow' if len(designs) == 1 else 'mixed'} methodological base and should be read with that in mind.",
         ]
+        if gap_titles:
+            points.append(
+                f"The most pressing open questions concern {join_items(self._lower_first(t) for t in gap_titles[:3])}, "
+                "which no reviewed study resolves."
+            )
+        points.append(
+            f"Closing these gaps with studies designed to test the existing claims directly would give research "
+            f"and practice on {topic} a firmer footing than the current literature provides."
+        )
         return points
 
     # ---- lenient JSON parsing -----------------------------------------------------------------

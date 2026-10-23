@@ -75,6 +75,7 @@ from .phase2 import (
     analyse_paper,
     classify_unclear,
     detect_tradition,
+    log_citation_check,
     recommend,
     resolve_review,
 )
@@ -288,6 +289,7 @@ class Theme:
     evidence: List[Tuple[ResultProfile, Evidence]]
     consistency: str = "mixed"  # "consistent", "mixed" or "contradictory"
     confidence: str = "Low"
+    confidence_reason: str = ""  # explain_theme()
 
     @property
     def profiles(self) -> List[ResultProfile]:
@@ -299,6 +301,7 @@ class Theme:
             "studies": [p.study.narrative for p in self.profiles],
             "consistency": self.consistency,
             "confidence": self.confidence,
+            "confidence_reason": self.confidence_reason,
             "evidence": [{"study": p.study.narrative, **asdict(e)} for p, e in self.evidence],
         }
 
@@ -471,6 +474,109 @@ def _theme_label(text: str, shared: Sequence[str]) -> str:
     return join_items([" ".join(phrase) for phrase in phrases][:3])
 
 
+# Words that cannot name a finding on their own ("challenges associated" says nothing about what was found).
+VAGUE_THEME_WORDS = set(
+    "challenge challenges associated related issue issues aspect aspects use used using based various different "
+    "new important need needs role roles impact impacts effect effects approach approaches concern concerns key "
+    "main overall several many general potential current growing increasing significant possible certain "
+    "complex specific".split()
+)
+THEME_LINKS = re.compile(r"\b(?:associated with|related to|linked to|arising from|posed by|in terms of)\b")
+THEME_TRAILING = {"a", "an", "the", "of", "and", "or", "to", "in", "on", "for", "with", "by", "at", "from", "as", "is",
+                  "are", "that", "which", "this", "these", "its", "their"}
+THEME_MAX_WORDS = 6
+
+
+def _is_vague(label: str) -> bool:
+    words = [w for w in re.findall(r"[a-z][a-z-]+", label.lower()) if w not in THEME_TRAILING]
+    if not words:
+        return True
+    specific = [w for w in words if w not in VAGUE_THEME_WORDS and _stem(w) not in VAGUE_THEME_WORDS]
+    return len(specific) < 1 or len(specific) * 2 < len(words)
+
+
+def _trim_phrase(words: List[str]) -> str:
+    words = words[:THEME_MAX_WORDS]
+    while words and words[-1].lower() in THEME_TRAILING:
+        words.pop()
+    while words and words[0].lower() in THEME_TRAILING:
+        words.pop(0)
+    return " ".join(words)
+
+
+def name_theme(label: str, texts: Sequence[str], shared: Sequence[str], excluded: set) -> str:
+    """A theme name that says what the finding is about.
+
+    The shared words are kept when they name something ("threat detection and cooperation"). When
+    they are vague ("challenges associated"), the name is read on from where they occur in the lead
+    finding ("challenges associated with AI-driven attacks" -> "challenges of AI-driven attacks"),
+    or else taken from the most frequent specific two-word phrase the theme's findings share.
+    """
+    if not _is_vague(label):
+        return label
+    lead = re.sub(THEME_LINKS.pattern, "of", texts[0], flags=re.IGNORECASE) if texts else ""
+    tokens = re.findall(r"[A-Za-z][A-Za-z-]*|[.,;:()]", lead)
+    for i, token in enumerate(tokens):
+        if _stem(token.lower()) in shared:
+            phrase: List[str] = []
+            for word in tokens[i:]:
+                if word in ".,;:()" or len(phrase) >= THEME_MAX_WORDS + 2:
+                    break
+                # Ordinary words in lower case; acronyms and names ("FMs", "NATO") as written.
+                phrase.append(word.lower() if word[1:].islower() or len(word) == 1 else word)
+            candidate = _trim_phrase(phrase)
+            if candidate and not _is_vague(candidate):
+                return candidate
+            break
+    stops = THEME_STOPWORDS | THEME_EXTRA_STOPWORDS | VAGUE_THEME_WORDS
+    bigrams: Counter = Counter()
+    for text in texts:
+        words = re.findall(r"[a-z][a-z-]+", text.lower())
+        seen = set()
+        for a, b in zip(words, words[1:]):
+            if len(a) >= 4 and len(b) >= 4 and not {a, b} & stops and _stem(a) not in excluded and _stem(b) not in excluded:
+                if (a, b) not in seen:
+                    seen.add((a, b))
+                    bigrams[(a, b)] += 1
+    common = [pair for pair, n in bigrams.most_common() if n >= 2] or [pair for pair, _ in bigrams.most_common(1)]
+    if common:
+        specific = " ".join(common[0])
+        head = next((w for w in re.findall(r"[a-z][a-z-]+", label.lower()) if w in VAGUE_THEME_WORDS and w.endswith("s")), "")
+        return f"{head} of {specific}" if head in ("challenges", "risks", "effects", "impacts", "issues") else specific
+    return label
+
+
+def evidence_weight(profile: ResultProfile) -> float:
+    """How much a study's results count: its confidence, reported statistics and stated sample."""
+    weight = {"High": 3.0, "Medium": 2.0, "Low": 1.0}[profile.confidence]
+    weight += 0.5 * min(3, len(profile.effects()))
+    weight += 1.0 if profile.study.samples else 0.0
+    weight -= 1.0 if not profile.study.kind.empirical else 0.0
+    return weight
+
+
+def explain_theme(theme: Theme) -> str:
+    """Why a shared finding gets its confidence rating, in one clause."""
+    profiles = theme.profiles
+    strong = [p for p in profiles if p.confidence == "High"]
+    empirical = [p for p in profiles if p.study.kind.empirical]
+    stating = sum(1 for _, e in theme.evidence if e.direction != "neutral")
+    if theme.consistency == "contradictory":
+        return "the studies' findings point in different directions, so no single conclusion is supported"
+    parts = [f"{len(profiles)} {'study reports' if len(profiles) == 1 else 'studies report'} it"]
+    parts.append(f"{stating} of {len(theme.evidence)} findings state a clear direction"
+                 + (" and agree" if theme.consistency == "consistent" else ""))
+    parts.append(f"{len(empirical)} {'is' if len(empirical) == 1 else 'are'} empirical" if empirical else "none collected new data")
+    parts.append(f"{len(strong)} {'has' if len(strong) == 1 else 'have'} high individual confidence" if strong
+                 else "none has high individual confidence")
+    rule = {
+        "High": "high confidence needs three or more agreeing studies, two of them individually strong",
+        "Medium": "medium confidence needs agreeing empirical studies or at least one individually strong study",
+        "Low": "it falls short of the medium standard (agreeing empirical studies or one individually strong study)",
+    }[theme.confidence]
+    return "; ".join(parts) + f"; {rule}"
+
+
 def find_themes(profiles: Sequence[ResultProfile], topic: str, limit: int = MAX_THEMES) -> List[Theme]:
     """Findings that two or more papers report: finding sentences from different papers sharing two or more content words.
 
@@ -509,11 +615,14 @@ def find_themes(profiles: Sequence[ResultProfile], topic: str, limit: int = MAX_
             if match:
                 members.append(match)
         used.update(members)
-        theme = Theme(
-            _theme_label(profiles[i].findings[j].text, shared),
-            [(profiles[a], profiles[a].findings[b]) for a, b in sorted(members)],
+        evidence = [(profiles[a], profiles[a].findings[b]) for a, b in sorted(members)]
+        lead = profiles[i].findings[j]
+        label = name_theme(
+            _theme_label(lead.text, shared), [lead.text] + [e.text for _, e in evidence if e is not lead], shared, excluded
         )
+        theme = Theme(label, evidence)
         theme.consistency, theme.confidence = judge(theme)
+        theme.confidence_reason = explain_theme(theme)
         themes.append(theme)
         if len(themes) >= limit:
             break
@@ -526,7 +635,9 @@ def judge(theme: Theme) -> Tuple[str, str]:
     stating = sum(1 for _, e in theme.evidence if e.direction != "neutral")
     if len(directions) == 2:
         return "contradictory", "Low"
-    consistency = "consistent" if directions and stating >= 2 else "mixed"
+    # Agreement needs two or more findings stating a direction, and they must be most of the theme's
+    # evidence: two agreeing findings among five neutral ones don't make a consistent result.
+    consistency = "consistent" if directions and stating >= 2 and stating * 3 >= 2 * len(theme.evidence) else "mixed"
     profiles = theme.profiles
     strong = sum(1 for p in profiles if p.confidence == "High")
     empirical = sum(1 for p in profiles if p.study.kind.empirical)
@@ -696,7 +807,7 @@ def build_results(inputs: ResultsInputs) -> str:
         f"go, the text is marked **{markers.YOUR_DATA_ANALYSIS}**: report what your data show on that point and how it "
         f"compares with the studies. Where you choose your analysis, it is marked **{markers.YOUR_ANALYSIS_METHOD}**. "
         "Quotation marks enclose the papers' own words from their abstracts; findings taken from the Phase 1 summaries "
-        "are paraphrases and say so.",
+        "are paraphrases and say so. " + markers.guidance_legend(),
         "",
     ]
 
@@ -729,6 +840,8 @@ def build_results(inputs: ResultsInputs) -> str:
         )
     else:
         overview.append("No finding is reported by more than one study, so each study's results are presented on their own.")
+    overview.append("Within each finding, studies are listed strongest evidence first: those with reported statistics "
+                    "and stated samples before those whose results are stated in words or rest on argument.")
     overview.append(FIELD_EXPECTATIONS[tradition.key])
     lines += ["## 1. Overview of Findings", "", " ".join(overview), ""]
 
@@ -742,7 +855,7 @@ def build_results(inputs: ResultsInputs) -> str:
         who = (f"All {SPELLED.get(n, n)} studies" if len(studies) == n
                else f"{_cap(str(SPELLED.get(len(studies), len(studies))))} of the {SPELLED.get(n, n)} studies")
         lines += [f"{who} report findings on {theme.term} ({_cites(studies)}).", ""]
-        for profile, evidence in theme.evidence:
+        for profile, evidence in sorted(theme.evidence, key=lambda pe: -evidence_weight(pe[0])):
             stats = _stats_brief(profile, 3)
             detail = f"{_lc(profile.study.kind.label)}; sample: {_sample_brief(profile.study)}"
             if stats != "Not reported":
@@ -761,6 +874,8 @@ def build_results(inputs: ResultsInputs) -> str:
             f"from {_count(len(studies), 'study', 'studies')} rated "
             + join_items(f"{p.confidence.lower()} ({p.study.cite})" for p in theme.profiles) + "."
         )
+        if theme.confidence_reason:
+            strength += f" Why {theme.confidence.lower()}: {theme.confidence_reason}."
         caveats = [f"{p.study.narrative}: {p.confidence_reason}" for p in theme.profiles if p.confidence != "High"]
         if caveats:
             strength += " Limitations: " + "; ".join(caveats) + "."
@@ -776,7 +891,7 @@ def build_results(inputs: ResultsInputs) -> str:
             "",
         ]
     covered = {id(p) for t in themes for p in t.profiles}
-    others = [p for p in profiles if id(p) not in covered and p.lead]
+    others = sorted((p for p in profiles if id(p) not in covered and p.lead), key=lambda p: -evidence_weight(p))
     if others:
         number += 1
         lines += [f"### 2.{number} {'Further findings' if themes else 'Findings of each study'}", ""]
@@ -863,10 +978,15 @@ def build_results(inputs: ResultsInputs) -> str:
         lines.append("- None identified from the wording of the findings.")
     lines += ["", "### Gaps in the evidence", ""]
     lines += [f"- {gap}" for gap in _evidence_gaps(profiles, themes, tradition)]
+    lines += ["", "### Data needed by future research", ""]
+    lines += [f"- **{need}.** {why}" for need, why in data_gaps(profiles, themes, tradition)]
     lines += [
         "",
-        "*Consistency is read from the wording of each finding (e.g. \"improves\" vs \"limited\"), so check every "
-        "judgement against the papers before relying on it.*",
+        markers.guidance(
+            markers.USER_SHOULD_VERIFY,
+            "Consistency is read from the wording of each finding (e.g. \"improves\" vs \"limited\"), so check every "
+            "judgement against the papers before relying on it.",
+        ),
         "",
         "### Integrating your results",
         "",
@@ -886,10 +1006,23 @@ def build_results(inputs: ResultsInputs) -> str:
         "",
         "## References",
         "",
-        inputs.bibliography,
+        inputs.bibliography + method_references("\n".join(lines)),
         "",
     ]
     return "\n".join(lines)
+
+
+# Methodological works the analysis plan cites (not reviewed papers), with their reference entries.
+METHOD_REFERENCES = {
+    ("Demšar", "2006"): "Demšar, J. (2006). Statistical comparisons of classifiers over multiple data sets. "
+                        "*Journal of Machine Learning Research*, 7, 1-30.",
+}
+
+
+def method_references(text: str) -> str:
+    """Reference entries for the methodological works cited in `text`, appended to the bibliography."""
+    entries = [entry for (surname, year), entry in METHOD_REFERENCES.items() if f"{surname}, {year}" in text]
+    return "".join(f"\n\n{entry}" for entry in entries)
 
 
 def _field_gaps(profiles: Sequence[ResultProfile], tradition: Tradition) -> List[str]:
@@ -944,6 +1077,89 @@ def _evidence_gaps(profiles: Sequence[ResultProfile], themes: Sequence[Theme], t
         elif p.limitations:
             gaps.append(f"{p.study.narrative}, according to Phase 1: {p.limitations[-1].text}")
     return gaps
+
+
+# Data each field needs that abstracts most often lack: (data, why future research needs it).
+FIELD_DATA_NEEDS = {
+    "health": ("Safety and adverse-event data", "benefits cannot be weighed against harms without them"),
+    "social": ("Representative samples measured with validated scales", "so results generalise beyond convenience samples and can be compared across studies"),
+    "engineering": ("Public datasets, code and per-run results", "so others can reproduce the reported performance and compare methods fairly"),
+    "law": ("Coded case outcomes across jurisdictions", "so doctrinal claims can be checked against how courts actually decide"),
+    "humanities": ("Primary sources from more archives or communities", "so interpretations rest on more than one body of evidence"),
+}
+LONGITUDINAL = re.compile(r"\blongitudinal\b|\bpanel\b|\bcohort\b|\bfollow-?up\b|\bover (?:time|\d+ years)\b", re.IGNORECASE)
+
+
+def data_gaps(profiles: Sequence[ResultProfile], themes: Sequence[Theme], tradition: Tradition) -> List[Tuple[str, str]]:
+    """(data that is missing, why future research needs it), from what the reviewed studies report."""
+    needs: List[Tuple[str, str]] = []
+    texts = " ".join(f"{p.study.title} {e.text}" for p in profiles for e in p.findings)
+    if not LONGITUDINAL.search(texts):
+        needs.append(("Longitudinal data", "every study measures at a single point in time, so how the findings change "
+                                             "over time, and what causes what, is unknown"))
+    no_effects = [p.study for p in profiles if p.study.kind.empirical and not p.effects()]
+    if no_effects:
+        needs.append(("Effect sizes with confidence intervals", f"{_names_list(no_effects)} report no statistics, so the "
+                      "size of their effects cannot be compared or pooled"))
+    non_empirical = [p.study for p in profiles if not p.study.kind.empirical]
+    if non_empirical and len(non_empirical) * 2 >= len(profiles):
+        needs.append(("Primary data testing the proposed frameworks", f"{_cap(_count(len(non_empirical), 'study', 'studies'))} "
+                      f"({_cites(non_empirical)}) argue or synthesise without new data, so their claims are untested"))
+    countries = Counter(c for p in profiles for c in p.study.countries)
+    if len(countries) <= 3:
+        where = f"only {join_items(list(countries))}" if countries else "settings the abstracts do not name"
+        needs.append(("Data from other settings", f"the evidence comes from {where}, so transfer to other countries and "
+                      "sectors is untested"))
+    covered = {id(p) for t in themes for p in t.profiles}
+    single = [p.study for p in profiles if id(p) not in covered and p.lead]
+    if single:
+        needs.append(("Replication data", f"{_count(len(single), 'finding rests', 'findings rest')} on one study each "
+                      "and need independent replication before they can be relied on"))
+    field_need = FIELD_DATA_NEEDS.get(tradition.key)
+    if field_need:
+        needs.append(field_need)
+    return needs
+
+
+def _names_list(studies: Sequence[StudyDesign], limit: int = 4) -> str:
+    names = [s.narrative for s in studies[:limit]]
+    if len(studies) > limit:
+        names.append(f"{len(studies) - limit} other studies")
+    return join_items(names)
+
+
+# How each field expects an analysis to be stress-tested: (practice, what to do).
+FIELD_ANALYSIS_PRACTICES: Dict[str, Tuple[Tuple[str, str], ...]] = {
+    "health": (
+        ("Sensitivity analysis", "repeat the main analysis under different assumptions (per-protocol vs intention-to-treat, complete cases vs multiple imputation) and report whether the conclusion holds"),
+        ("Subgroup analysis", "pre-specify a small number of subgroups (e.g. age, sex, severity) and test interactions rather than separate significance"),
+        ("Clinical significance", "compare each effect with the minimal clinically important difference, not only with zero"),
+        ("Missing data", "report how much is missing in each group and handle it with multiple imputation where it is not trivial"),
+    ),
+    "social": (
+        ("Measurement quality", "report reliability (alpha or omega) and, for multi-item scales, a confirmatory factor analysis before testing relationships"),
+        ("Robustness checks", "re-run key models with and without control variables and outliers, and report whether the effects persist"),
+        ("Common-method variance", "test for it (e.g. Harman's single-factor or a marker variable) when one survey measures all variables"),
+        ("Qualitative credibility", "report coding agreement or peer debriefing, negative cases and how themes were refined"),
+    ),
+    "engineering": (
+        ("Ablation study", "remove or replace one component at a time to show what each contributes to the result"),
+        ("Sensitivity analysis", "vary key hyperparameters and data sizes and plot how performance responds, so the result is not tied to one setting"),
+        ("Variance across runs", "report mean and standard deviation (or 95% CI) over 3-10 seeds and test differences across seeds or datasets"),
+        ("Robustness and generalisation", "evaluate on a held-out or out-of-distribution dataset and under noise or adversarial perturbation where relevant"),
+        ("Efficiency", "report training and inference time, memory and hardware, so gains can be weighed against cost"),
+    ),
+    "law": (
+        ("Coding reliability", "when coding many decisions, have a second coder code a sample and report agreement"),
+        ("Counter-arguments", "test each doctrinal conclusion against the strongest contrary authority"),
+        ("Comparative calibration", "check that terms carry the same meaning across the jurisdictions compared"),
+    ),
+    "humanities": (
+        ("Source triangulation", "support each interpretive claim with independent sources and note where they diverge"),
+        ("Negative cases", "look for sources that contradict the interpretation and explain them"),
+        ("Reflexivity", "record how the interpretive framework shaped what was noticed and what was not"),
+    ),
+}
 
 
 def _analysis_plan(inputs: ResultsInputs) -> List[str]:
@@ -1057,6 +1273,24 @@ def _analysis_plan(inputs: ResultsInputs) -> List[str]:
                "the selection of cases or sources, which you should justify explicitly") + ".",
             "",
         ]
+
+    # 6.4 Field-specific practices
+    lines += [
+        "### 6.4 Field-specific analysis practices",
+        "",
+        f"Examiners in {tradition.name.lower()} expect the main analysis to be stress-tested in these ways:",
+        "",
+    ]
+    lines += [f"- **{practice}:** {what}." for practice, what in FIELD_ANALYSIS_PRACTICES[tradition.key]]
+    lines += [
+        "",
+        markers.guidance(
+            markers.OPTIONAL_POLISH,
+            "Add a short robustness subsection to your results reporting which of these checks you ran and whether "
+            "each left your conclusions unchanged.",
+        ),
+        "",
+    ]
     return lines
 
 
@@ -1199,7 +1433,10 @@ def run_phase3(args) -> List[Path]:
     markdown = build_results(inputs)
     written = Exporter(output_dir=output_dir).export_all(markdown, f"{slug}-results", formats)
     analysis_path = output_dir / f"{slug}-results-analysis.json"
-    analysis_path.write_text(json.dumps(analysis_json(inputs, input_path), indent=2, ensure_ascii=False), encoding="utf-8")
+    data = analysis_json(inputs, input_path)
+    data["data_gaps"] = [{"data": need, "why": why} for need, why in data_gaps(inputs.profiles, inputs.themes, inputs.tradition)]
+    data["citation_check"] = log_citation_check(markdown, corpus, "Phase 3", extra_known=list(METHOD_REFERENCES))
+    analysis_path.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
     written.append(analysis_path)
 
     placed = sum(1 for line in markdown.splitlines() if markers.RESULTS_MARKER_LINE.match(line))

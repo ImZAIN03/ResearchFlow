@@ -63,16 +63,18 @@ from .phase2 import FIELD_CHOICES, PHASE2_FORMATS, run_phase2
 from .phase3 import PHASE3_FORMATS, run_phase3
 from .phase4 import PHASE4_FORMATS, run_phase4
 from .report_builder import ReportBuilder, ReviewInputs, flowchart_filename
-from .review_assembly import IncompleteReviewError
+from .review_assembly import IncompleteReviewError, polish_research_gaps, polish_review
 from .review_methodology import (
     METHODOLOGY_CHOICES,
     ReviewFlow,
     get_methodology,
     protocol_paragraphs,
+    rank_papers,
     resolve_years,
     screen,
 )
 from .text_extraction import TextExtractor
+from .thesis_standards import DEFAULT_DEGREE, DEGREE_CHOICES
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("researchflow")
@@ -174,6 +176,13 @@ def parse_args(argv=None) -> argparse.Namespace:
         help="Methodological tradition to follow instead of the one detected from the papers (Phase 3: also how "
         f"results are reported; Phase 4: which implications are drawn): {', '.join(FIELD_CHOICES)}",
     )
+    phase2.add_argument(
+        "--degree",
+        choices=DEGREE_CHOICES,
+        default=DEFAULT_DEGREE,
+        help="Degree the thesis is for; sets the scope, depth and originality standards the methodology and the "
+        f"executive summary are measured against: {', '.join(DEGREE_CHOICES)} (default: {DEFAULT_DEGREE})",
+    )
     args = parser.parse_args(argv)
     unknown = [s.strip() for s in (args.sources or "").split(",") if s.strip() and s.strip() not in SOURCES]
     if unknown:
@@ -228,6 +237,12 @@ def slugify(text: str) -> str:
     return slug.strip("-")[:60] or "report"
 
 
+def grounding_source(summaries: list[PaperSummary]) -> str:
+    """Everything known about the papers: what the model saw plus their full titles and abstracts."""
+    papers = "\n".join(f"{s.paper.title}\n{s.paper.abstract}" for s in summaries)
+    return f"{sources_block(summaries, LARGE_CONTEXT_CHARS)}\n{papers}"
+
+
 def check_content_quality(
     outline: Outline, synthesis: str, research_gaps: str, summaries: list[PaperSummary]
 ) -> list[str]:
@@ -243,7 +258,7 @@ def check_content_quality(
         if section.origin == "fallback":
             # Extracted from the papers by construction, so the grounding check doesn't apply.
             warnings.append(
-                f"Outline section {section.heading!r} was built from paper abstracts (model output rejected)"
+                f"Outline section {section.heading!r} was built from the papers' metadata and themes (model output rejected)"
             )
             continue
         problem = content_issue("\n".join(section.points), min_sentences=2, min_words=15, source=sources)
@@ -262,7 +277,9 @@ def check_content_quality(
 
     for s in summaries:
         if not s.from_llm:
-            warnings.append(f"Summary of {s.paper.title[:60]!r} was taken from its abstract (model output rejected)")
+            warnings.append(
+                f"Summary of {s.paper.title[:60]!r} was built from its abstract, metadata and keywords (model output rejected)"
+            )
         elif PLACEHOLDER_PATTERN.search(s.summary):
             warnings.append(f"Summary of {s.paper.title[:60]!r} contains placeholder text")
 
@@ -292,6 +309,7 @@ def run(args: argparse.Namespace) -> list[Path]:
     # Retrieve a larger pool than will be reviewed, so screening and ranking have something to choose from.
     found = discovery.search_queries(args.queries, per_query=min(100, max(20, args.max_papers * 2)), sources=sources)
     eligible, excluded = screen(found.papers, methodology, args.queries, year_from, year_to)
+    eligible = rank_papers(eligible, args.queries)
     papers = eligible[: args.max_papers]
     flow = ReviewFlow(
         found_by_source=found.found_by_source,
@@ -316,7 +334,7 @@ def run(args: argparse.Namespace) -> list[Path]:
     # than leaving it resident for Ollama's default keep-alive window.
     with LLMSynthesizer(model=args.model) as synthesizer:
         logger.info("Summarizing papers%s...", "" if methodology.full_text else " (abstracts only)")
-        summaries = synthesizer.summarize_all(papers, extractor, full_text=methodology.full_text)
+        summaries = synthesizer.summarize_all(papers, extractor, full_text=methodology.full_text, topic=topic)
         logger.info("Summarized %d/%d papers", len(summaries), len(papers))
         if not summaries:
             logger.error("Could not summarize any papers; aborting.")
@@ -330,9 +348,13 @@ def run(args: argparse.Namespace) -> list[Path]:
         research_gaps, tensions = "", []
         if "discussion" in args.sections:
             logger.info("Identifying research gaps...")
-            research_gaps = synthesizer.generate_research_gaps(topic, synthesis, summaries)
+            # Contradictions first: together with the papers' limitations and stated future work, they
+            # are one of the three sources the research gaps are drawn from.
             logger.info("Looking for contradictions between papers...")
             tensions = synthesizer.find_tensions(topic, summaries)
+            research_gaps = polish_research_gaps(
+                synthesizer.generate_research_gaps(topic, synthesis, summaries, tensions), summaries, topic
+            )
 
         logger.info("Writing sections: %s", ", ".join(args.sections))
         outline_generator = OutlineGenerator(synthesizer)
@@ -369,6 +391,12 @@ def run(args: argparse.Namespace) -> list[Path]:
         flowchart=flowchart,
         tensions=tensions,
     ))
+    polished = polish_review(report_md, [s.paper for s in summaries], grounding_source(summaries))
+    report_md = polished.markdown
+    for change in polished.fixed:
+        logger.info("Polish: %s", change)
+    for issue in polished.issues:
+        logger.warning("Review check: %s", issue)
     counts = marker_counts(report_md)
     logger.info(
         "User input markers: %s (%.0f%% of the text left for your analysis)",

@@ -11,7 +11,7 @@ from dataclasses import dataclass, field
 from typing import List, Optional, Sequence, Tuple
 
 from . import critical_gaps as gaps
-from .llm_synthesis import PaperSummary, fix_typos, join_items, method_label, parse_gaps, split_sentences
+from .llm_synthesis import PaperSummary, ensure_coverage, fix_typos, join_items, method_label, parse_gaps, split_sentences
 from .outline_generator import REPORT_SECTIONS, Outline, OutlineSection
 from .review_methodology import ReviewFlow, ReviewMethodology
 
@@ -75,7 +75,8 @@ class ReportBuilder:
         return [
             f"> **How to complete this review.** This {review.methodology.name.lower()} was generated from "
             f"{len(review.summaries)} papers. The critical analysis is left to you and marked in the text: "
-            + "; ".join(items) + ". Replace each marker with your own analysis before submitting.",
+            + "; ".join(items) + ". Replace each marker with your own analysis before submitting. "
+            + gaps.guidance_legend(),
             "",
         ]
 
@@ -87,7 +88,9 @@ class ReportBuilder:
 
     def _literature_review(self, review: ReviewInputs) -> List[str]:
         paragraphs = [self._fresh_text(p) for p in review.synthesis.split("\n\n")]
-        return ["\n\n".join(p for p in paragraphs if p) or review.synthesis]
+        text = "\n\n".join(p for p in paragraphs if p) or review.synthesis
+        # Dropping repeated sentences must not drop a paper: every included study is discussed here.
+        return [ensure_coverage(text, review.summaries, review.topic)]
 
     def _methodology(self, review: ReviewInputs, designs: Optional[OutlineSection]) -> List[str]:
         lines: List[str] = []
@@ -113,6 +116,11 @@ class ReportBuilder:
         lines = [self._results_overview(summaries), ""]
         lines += ["*Table 1. Results and analysis of the included studies.*", ""]
         lines += self.results_table(summaries) + [""]
+        lines += [gaps.guidance(
+            gaps.USER_SHOULD_VERIFY,
+            "Findings, gaps and methodology types were extracted automatically from abstracts; check each row "
+            "against the paper before citing it.",
+        ), ""]
         if review.methodology.empirical_only:
             lines += [gaps.meta_analysis_marker(), ""]
 

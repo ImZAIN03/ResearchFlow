@@ -9,49 +9,322 @@
     "tradition": "engineering",
     "tradition_name": "Engineering, computing and the natural sciences",
     "tradition_scores": {
-      "health": 0.153,
-      "social": 0.112,
-      "engineering": 0.674,
-      "law": 0.086,
-      "humanities": 0.008
+      "health": 0.024,
+      "social": 0.342,
+      "engineering": 0.421,
+      "law": 0.085,
+      "humanities": 0.027
     },
     "overridden": false
   },
   "studies": [
     {
-      "citation": "Yang et al. (2025)",
-      "author": "Yang et al.",
-      "year": "2025",
-      "title": "Toward a Multi-Echelon Cyber Warfare Theory: A Meta-Game-Theoretic Paradigm for Defense and Dominance",
-      "design": "conceptual",
+      "citation": "Kumar et al. (2024)",
+      "author": "Kumar et al.",
+      "year": "2024",
+      "title": "Threat Modeling for Cyber Warfare Against Less Cyber-Dependent Adversaries",
+      "design": "mixed-methods",
+      "other_designs": [
+        "Qualitative interview study",
+        "Case study",
+        "Narrative literature review"
+      ],
+      "samples": [],
+      "collection": [
+        "interviews",
+        "documents"
+      ],
+      "analysis": [
+        "assessment-frameworks",
+        "interpretive",
+        "narrative-synthesis"
+      ],
+      "countries": [
+        "Estonia",
+        "Georgia",
+        "Ukraine"
+      ],
+      "populations": [
+        "experts",
+        "organisations and firms",
+        "governments and states"
+      ],
+      "stated_gap": "Technologically, less advanced adversaries, such as smaller nations or organizations with limited resources, face unique challenges in defending against sophisticated cyber attacks from more advanced entities.",
+      "evidence": {
+        "design": "Employing a mixed methods approach, the research combines qualitative and quantitative data from primary sources, such as interviews with cybersecurity experts, and secondary sources, including existing literature and case studies.",
+        "collection: Interviews": "Employing a mixed methods approach, the research combines qualitative and quantitative data from primary sources, such as interviews with cybersecurity experts, and secondary sources, including existing literature and case studies.",
+        "collection: Documents, archives and published literature": "Employing a mixed methods approach, the research combines qualitative and quantitative data from primary sources, such as interviews with cybersecurity experts, and secondary sources, including existing literature and case studies.",
+        "analysis: Structured assessment frameworks (risk, threat, SWOT)": "Threat Modeling for Cyber Warfare Against Less Cyber-Dependent Adversaries.",
+        "analysis: Interpretive / historical analysis": "By examining the evolution of cyber warfare, including historical incidents and the increasing sophistication of cyber attacks, the study highlights the limitations of existing threat modeling approaches like the Cyber ...",
+        "analysis: Narrative synthesis of the literature": "A comprehensive literature review underscores the gaps in current research, particularly the necessity for frameworks tailored to asymmetric technological capabilities."
+      },
+      "confidence": "medium",
+      "classified_by": "rules",
+      "confidence_reason": "score 4: the abstract names the design; 2 cues for it agree; it states how data were collected; it states how data were analysed; it also describes a qualitative interview study",
+      "design_label": "Mixed-methods design",
+      "approach": "Mixed methods",
+      "data_collection_methods": [
+        "Interviews",
+        "Documents, archives and published literature"
+      ],
+      "analysis_methods": [
+        "Structured assessment frameworks (risk, threat, SWOT)",
+        "Interpretive / historical analysis",
+        "Narrative synthesis of the literature"
+      ]
+    },
+    {
+      "citation": "Huang (2024)",
+      "author": "Huang",
+      "year": "2024",
+      "title": "Navigating digital divide: exploring the influence of ideological and political education on cyber security and digital literacy amid information warfare",
+      "design": "unclassified",
       "other_designs": [],
+      "samples": [],
+      "collection": [],
+      "analysis": [],
+      "countries": [],
+      "populations": [],
+      "stated_gap": "Its argument is not tested against empirical data.",
+      "evidence": {},
+      "confidence": "low",
+      "classified_by": "rules",
+      "confidence_reason": "no design keyword occurs in the title or abstract",
+      "design_label": "Unclear from the abstract",
+      "approach": "Not stated",
+      "data_collection_methods": [],
+      "analysis_methods": []
+    },
+    {
+      "citation": "Siam et al. (2025)",
+      "author": "Siam et al.",
+      "year": "2025",
+      "title": "AI-Driven Cyber Threat Intelligence Systems: A National Framework for Proactive Defense Against Evolving Digital Warfare",
+      "design": "survey",
+      "other_designs": [
+        "Conceptual / theoretical analysis"
+      ],
+      "samples": [
+        {
+          "count": 300,
+          "unit": "cybersecurity practitioners",
+          "group": "people",
+          "text": "300 cybersecurity practitioners"
+        }
+      ],
+      "collection": [
+        "questionnaires"
+      ],
+      "analysis": [
+        "inferential",
+        "descriptive"
+      ],
+      "countries": [],
+      "populations": [
+        "practitioners and employees",
+        "organisations and firms",
+        "governments and states"
+      ],
+      "stated_gap": "The research project has not overlooked some of the major challenges, which include the failure to standardize, poor policy infrastructure, and interoperability.",
+      "evidence": {
+        "design": "The descriptive research design was used, and information was gathered using structured surveys that were administered to 300 cybersecurity practitioners in large and small firms.",
+        "collection: Questionnaires / surveys": "The descriptive research design was used, and information was gathered using structured surveys that were administered to 300 cybersecurity practitioners in large and small firms.",
+        "analysis: Inferential statistics (regression, significance tests)": "A multivariate regression model revealed that there was a positive relationship regarding the independent variables and the effectiveness of AI-CTIS, checking in with an R² = 0.76 and a p ...",
+        "analysis: Descriptive statistics": "The descriptive research design was used, and information was gathered using structured surveys that were administered to 300 cybersecurity practitioners in large and small firms."
+      },
+      "confidence": "high",
+      "classified_by": "rules",
+      "confidence_reason": "score 5: the abstract names the design; 4 cues for it agree; it states a sample; it states how data were collected; it states how data were analysed; it also describes a conceptual / theoretical analysis",
+      "design_label": "Cross-sectional survey",
+      "approach": "Quantitative",
+      "data_collection_methods": [
+        "Questionnaires / surveys"
+      ],
+      "analysis_methods": [
+        "Inferential statistics (regression, significance tests)",
+        "Descriptive statistics"
+      ]
+    },
+    {
+      "citation": "Ma et al. (2024)",
+      "author": "Ma et al.",
+      "year": "2024",
+      "title": "Non-cooperative game theory with generative adversarial network for effective decision-making in military cyber warfare",
+      "design": "unclassified",
+      "other_designs": [],
+      "samples": [],
+      "collection": [],
+      "analysis": [],
+      "countries": [],
+      "populations": [],
+      "stated_gap": "Its argument is not tested against empirical data.",
+      "evidence": {},
+      "confidence": "low",
+      "classified_by": "rules",
+      "confidence_reason": "no design keyword occurs in the title or abstract",
+      "design_label": "Unclear from the abstract",
+      "approach": "Not stated",
+      "data_collection_methods": [],
+      "analysis_methods": []
+    },
+    {
+      "citation": "Unknown (2023)",
+      "author": "Unknown",
+      "year": "2023",
+      "title": "Russian cyber and information warfare in practice",
+      "design": "unclassified",
+      "other_designs": [],
+      "samples": [],
+      "collection": [],
+      "analysis": [],
+      "countries": [],
+      "populations": [],
+      "stated_gap": "Its argument is not tested against empirical data.",
+      "evidence": {},
+      "confidence": "low",
+      "classified_by": "rules",
+      "confidence_reason": "no design keyword occurs in the title or abstract",
+      "design_label": "Unclear from the abstract",
+      "approach": "Not stated",
+      "data_collection_methods": [],
+      "analysis_methods": []
+    },
+    {
+      "citation": "Cremer et al. (2024)",
+      "author": "Cremer et al.",
+      "year": "2024",
+      "title": "On the insurability of cyber warfare: An investigation into the German cyber insurance market",
+      "design": "unclassified",
+      "other_designs": [],
+      "samples": [],
+      "collection": [],
+      "analysis": [],
+      "countries": [],
+      "populations": [],
+      "stated_gap": "Its argument is not tested against empirical data.",
+      "evidence": {},
+      "confidence": "low",
+      "classified_by": "rules",
+      "confidence_reason": "no design keyword occurs in the title or abstract",
+      "design_label": "Unclear from the abstract",
+      "approach": "Not stated",
+      "data_collection_methods": [],
+      "analysis_methods": []
+    },
+    {
+      "citation": "Lindsay (2025)",
+      "author": "Lindsay",
+      "year": "2025",
+      "title": "Stuxnet revisited: From cyber warfare to secret statecraft",
+      "design": "case-study",
+      "other_designs": [],
+      "samples": [],
+      "collection": [
+        "documents"
+      ],
+      "analysis": [
+        "interpretive"
+      ],
+      "countries": [
+        "Iran"
+      ],
+      "populations": [],
+      "stated_gap": "While espionage and subversion are prevalent, serious cyber-physical damage remains rare.",
+      "evidence": {
+        "design": "This seminal case deserves a second look in light of more recent evidence and the evolving literature on cybersecurity.",
+        "collection: Documents, archives and published literature": "This seminal case deserves a second look in light of more recent evidence and the evolving literature on cybersecurity.",
+        "analysis: Interpretive / historical analysis": "Stuxnet revisited: From cyber warfare to secret statecraft."
+      },
+      "confidence": "medium",
+      "classified_by": "rules",
+      "confidence_reason": "score 4: the abstract names the design; it states how data were collected; it states how data were analysed",
+      "design_label": "Case study",
+      "approach": "Qualitative",
+      "data_collection_methods": [
+        "Documents, archives and published literature"
+      ],
+      "analysis_methods": [
+        "Interpretive / historical analysis"
+      ]
+    },
+    {
+      "citation": "Wang et al. (2024)",
+      "author": "Wang et al.",
+      "year": "2024",
+      "title": "Cyber warfare: a study of Zelenskyy’s social media political performance strategies and effects",
+      "design": "computational-experiment",
+      "other_designs": [],
+      "samples": [
+        {
+          "count": 604,
+          "unit": "valid tweets",
+          "group": "data items",
+          "text": "604 valid tweets"
+        }
+      ],
+      "collection": [
+        "datasets"
+      ],
+      "analysis": [],
+      "countries": [
+        "Russia",
+        "Ukraine"
+      ],
+      "populations": [],
+      "stated_gap": "Findings are tied to the specific data and setting studied; transfer to other contexts is untested.",
+      "evidence": {
+        "design": "The searched and collected dataset consists 604 valid tweets and 58,100 corresponding comments.",
+        "collection: Existing datasets / benchmarks": "The searched and collected dataset consists 604 valid tweets and 58,100 corresponding comments."
+      },
+      "confidence": "high",
+      "classified_by": "rules",
+      "confidence_reason": "score 5: the abstract names the design; 2 cues for it agree; it states a sample; it states how data were collected",
+      "design_label": "Computational experiment (benchmark evaluation)",
+      "approach": "Quantitative",
+      "data_collection_methods": [
+        "Existing datasets / benchmarks"
+      ],
+      "analysis_methods": []
+    },
+    {
+      "citation": "Mohamed et al. (2023)",
+      "author": "Mohamed et al.",
+      "year": "2023",
+      "title": "Understanding the Threat Posed by Chinese Cyber Warfare Units",
+      "design": "literature-review",
+      "other_designs": [
+        "Conceptual / theoretical analysis"
+      ],
       "samples": [],
       "collection": [],
       "analysis": [
         "assessment-frameworks"
       ],
-      "countries": [],
+      "countries": [
+        "China"
+      ],
       "populations": [],
-      "stated_gap": "The proposed framework has not been validated empirically.",
+      "stated_gap": "The emergence of China as a global superpower has presented numerous challenges, among which is the growing threat posed by Chinese cyber warfare units.",
       "evidence": {
-        "design": "Game theory offers a unifying framework for this purpose.",
-        "analysis: Structured assessment frameworks (risk, threat, SWOT)": "It not only models attacker-defender interactions but also provides quantitative tools for equilibrium analysis, risk assessment, and strategic reasoning."
+        "design": "The study aims to offer an overview of the nature, extent, and menace posed by Chinese cyber warfare units, utilizing the MITRE ATT&CK framework as a foundation.",
+        "analysis: Structured assessment frameworks (risk, threat, SWOT)": "In this study, we utilize the MITRE ATT&CK framework as a foundation to deliver an accessible, informative overview."
       },
-      "confidence": "medium",
+      "confidence": "low",
       "classified_by": "rules",
-      "design_label": "Conceptual / theoretical analysis",
-      "approach": "Conceptual",
+      "confidence_reason": "score 2: the abstract names the design; it states how data were analysed; it also describes a conceptual / theoretical analysis",
+      "design_label": "Narrative literature review",
+      "approach": "Evidence synthesis",
       "data_collection_methods": [],
       "analysis_methods": [
         "Structured assessment frameworks (risk, threat, SWOT)"
       ]
     },
     {
-      "citation": "Diggelen et al. (2025)",
-      "author": "Diggelen et al.",
-      "year": "2025",
-      "title": "Designing AI-Enabled Countermeasures to Cognitive Warfare",
-      "design": "conceptual",
+      "citation": "Sfetcu (2024)",
+      "author": "Sfetcu",
+      "year": "2024",
+      "title": "Advanced Persistent Threats in Cybersecurity – Cyber Warfare",
+      "design": "unclassified",
       "other_designs": [],
       "samples": [],
       "collection": [],
@@ -59,49 +332,20 @@
       "countries": [],
       "populations": [],
       "stated_gap": "Its argument is not tested against empirical data.",
-      "evidence": {
-        "design": "This paper proposes possible AI-enabled countermeasures against cognitive warfare and argues how they can be developed in a responsible way, such that meaningful human control is preserved."
-      },
-      "confidence": "medium",
+      "evidence": {},
+      "confidence": "low",
       "classified_by": "rules",
-      "design_label": "Conceptual / theoretical analysis",
-      "approach": "Conceptual",
+      "confidence_reason": "no design keyword occurs in the title or abstract",
+      "design_label": "Unclear from the abstract",
+      "approach": "Not stated",
       "data_collection_methods": [],
       "analysis_methods": []
     },
     {
-      "citation": "Sánchez et al. (2025)",
-      "author": "Sánchez et al.",
+      "citation": "Khan (2025)",
+      "author": "Khan",
       "year": "2025",
-      "title": "A Global Analysis of Cyber Threats to the Energy Sector: \"Currents of Conflict\" from a Geopolitical Perspective",
-      "design": "computational-experiment",
-      "other_designs": [],
-      "samples": [],
-      "collection": [],
-      "analysis": [
-        "comparative"
-      ],
-      "countries": [],
-      "populations": [],
-      "stated_gap": "Findings are tied to the specific data and setting studied; transfer to other contexts is untested.",
-      "evidence": {
-        "design": "Additionally, we evaluate the effectiveness of cybersecurity tools -- with particular emphasis on learning-based techniques -- in detecting indicators of compromise for energy-targeted attacks.",
-        "analysis: Comparative analysis": "By conducting a geopolitical comparison of threat actor origins and target regions across multiple databases, we provide insights into trends within the general threat landscape."
-      },
-      "confidence": "medium",
-      "classified_by": "rules",
-      "design_label": "Computational experiment (benchmark evaluation)",
-      "approach": "Quantitative",
-      "data_collection_methods": [],
-      "analysis_methods": [
-        "Comparative analysis"
-      ]
-    },
-    {
-      "citation": "Yang et al. (2025)",
-      "author": "Yang et al.",
-      "year": "2025",
-      "title": "A Multi-Resolution Dynamic Game Framework for Cross-Echelon Decision-Making in Cyber Warfare",
+      "title": "Cyber Warfare and International Security: A New Geopolitical Frontier",
       "design": "case-study",
       "other_designs": [
         "Conceptual / theoretical analysis"
@@ -109,394 +353,196 @@
       "samples": [],
       "collection": [],
       "analysis": [],
+      "countries": [
+        "China",
+        "Russia",
+        "Ukraine",
+        "United States"
+      ],
+      "populations": [
+        "governments and states"
+      ],
+      "stated_gap": "The asymmetric nature of cyber warfare challenges traditional power dynamics, allowing smaller powers to challenge technologically superior states.",
+      "evidence": {
+        "design": "The analysis includes case studies of major geopolitical rivalries, such as the cyber competition between the United States and China and the cyber conflict between Russia and Ukraine, to demonstrate ..."
+      },
+      "confidence": "low",
+      "classified_by": "rules",
+      "confidence_reason": "score 2: the abstract names the design; 2 cues for it agree; it also describes a conceptual / theoretical analysis",
+      "design_label": "Case study",
+      "approach": "Qualitative",
+      "data_collection_methods": [],
+      "analysis_methods": []
+    },
+    {
+      "citation": "Rosli (2025)",
+      "author": "Rosli",
+      "year": "2025",
+      "title": "Waging warfare against states: the deployment of artificial intelligence in cyber espionage",
+      "design": "unclassified",
+      "other_designs": [],
+      "samples": [],
+      "collection": [],
+      "analysis": [],
+      "countries": [],
+      "populations": [],
+      "stated_gap": "The challenge of crimes committed within the cyber realm is how the nature of cybercrimes distorts the dichotomy of state responsibility in responding to cyber threats and vulnerabilities.",
+      "evidence": {},
+      "confidence": "low",
+      "classified_by": "rules",
+      "confidence_reason": "no design keyword occurs in the title or abstract",
+      "design_label": "Unclear from the abstract",
+      "approach": "Not stated",
+      "data_collection_methods": [],
+      "analysis_methods": []
+    },
+    {
+      "citation": "Khoirunnisa et al. (2024)",
+      "author": "Khoirunnisa et al.",
+      "year": "2024",
+      "title": "Cyber Warfare Strategies in the Russia-Ukraine Conflict (2021-2022): Implications for National Security and Modern Warfare",
+      "design": "unclassified",
+      "other_designs": [],
+      "samples": [],
+      "collection": [],
+      "analysis": [],
+      "countries": [
+        "Russia",
+        "Ukraine"
+      ],
+      "populations": [],
+      "stated_gap": "Its argument is not tested against empirical data.",
+      "evidence": {},
+      "confidence": "low",
+      "classified_by": "rules",
+      "confidence_reason": "no design keyword occurs in the title or abstract",
+      "design_label": "Unclear from the abstract",
+      "approach": "Not stated",
+      "data_collection_methods": [],
+      "analysis_methods": []
+    },
+    {
+      "citation": "Mohammed (2025)",
+      "author": "Mohammed",
+      "year": "2025",
+      "title": "Agent-vs-Agent Cyber Warfare: Autonomous AI Systems Defending Against AI-Enabled APTs",
+      "design": "unclassified",
+      "other_designs": [],
+      "samples": [],
+      "collection": [],
+      "analysis": [],
+      "countries": [],
+      "populations": [],
+      "stated_gap": "Its argument is not tested against empirical data.",
+      "evidence": {},
+      "confidence": "low",
+      "classified_by": "rules",
+      "confidence_reason": "no design keyword occurs in the title or abstract",
+      "design_label": "Unclear from the abstract",
+      "approach": "Not stated",
+      "data_collection_methods": [],
+      "analysis_methods": []
+    },
+    {
+      "citation": "Žilinčík et al. (2023)",
+      "author": "Žilinčík et al.",
+      "year": "2023",
+      "title": "Strategic studies and cyber warfare",
+      "design": "mixed-methods",
+      "other_designs": [],
+      "samples": [],
+      "collection": [
+        "observation",
+        "documents"
+      ],
+      "analysis": [
+        "interpretive"
+      ],
       "countries": [],
       "populations": [
         "governments and states"
       ],
-      "stated_gap": "Modeling these interactions at different echelons remains challenging due to the dynamic, large-scale, and interdependent nature of cyber environments.",
-      "evidence": {
-        "design": "A case study demonstrates how the framework works and its effectiveness in improving the defender's strategic advantage."
-      },
-      "confidence": "medium",
-      "classified_by": "rules",
-      "design_label": "Case study",
-      "approach": "Qualitative",
-      "data_collection_methods": [],
-      "analysis_methods": []
-    },
-    {
-      "citation": "Ahmed et al. (2024)",
-      "author": "Ahmed et al.",
-      "year": "2024",
-      "title": "Cyber Protection Applications of Quantum Computing: A Review",
-      "design": "systematic-review",
-      "other_designs": [
-        "Computational experiment (benchmark evaluation)"
-      ],
-      "samples": [
-        {
-          "count": 815,
-          "unit": "papers",
-          "group": "cases and documents",
-          "text": "815 papers"
-        }
-      ],
-      "collection": [],
-      "analysis": [],
-      "countries": [],
-      "populations": [],
-      "stated_gap": "Existing cyber protection applications are working well, but there are still challenges and vulnerabilities in computer networks.",
-      "evidence": {
-        "design": "This scoping review was conducted by considering 815 papers."
-      },
-      "confidence": "high",
-      "classified_by": "rules",
-      "design_label": "Systematic / scoping review",
-      "approach": "Evidence synthesis",
-      "data_collection_methods": [],
-      "analysis_methods": []
-    },
-    {
-      "citation": "Huang et al. (2024)",
-      "author": "Huang et al.",
-      "year": "2024",
-      "title": "Security Modelling for Cyber-Physical Systems: A Systematic Literature Review",
-      "design": "systematic-review",
-      "other_designs": [
-        "Narrative literature review"
-      ],
-      "samples": [
-        {
-          "count": 449,
-          "unit": "papers",
-          "group": "cases and documents",
-          "text": "449 papers"
-        }
-      ],
-      "collection": [],
-      "analysis": [
-        "assessment-frameworks",
-        "narrative-synthesis"
-      ],
-      "countries": [],
-      "populations": [],
-      "stated_gap": "Synthesizes earlier work without contributing new evidence of its own.",
-      "evidence": {
-        "design": "Security Modelling for Cyber-Physical Systems: A Systematic Literature Review.",
-        "analysis: Structured assessment frameworks (risk, threat, SWOT)": "We conducted a systematic search that yielded 449 papers, from which 32 were selected and categorised into three clusters: those focused on threat modelling methods, attack modelling methods, and literature ...",
-        "analysis: Narrative synthesis of the literature": "Security Modelling for Cyber-Physical Systems: A Systematic Literature Review."
-      },
-      "confidence": "high",
-      "classified_by": "rules",
-      "design_label": "Systematic / scoping review",
-      "approach": "Evidence synthesis",
-      "data_collection_methods": [],
-      "analysis_methods": [
-        "Structured assessment frameworks (risk, threat, SWOT)",
-        "Narrative synthesis of the literature"
-      ]
-    },
-    {
-      "citation": "Li et al. (2024)",
-      "author": "Li et al.",
-      "year": "2024",
-      "title": "Symbiotic Game and Foundation Models for Cyber Deception Operations in Strategic Cyber Warfare",
-      "design": "conceptual",
-      "other_designs": [],
-      "samples": [],
-      "collection": [],
-      "analysis": [],
-      "countries": [],
-      "populations": [],
-      "stated_gap": "This chapter concludes with a discussion of the challenges associated with FMs and their application in the domain of cybersecurity.",
-      "evidence": {
-        "design": "Game models (GMs) serve as a foundational framework for modeling diverse adversarial interactions, allowing us to encapsulate both adversarial knowledge and domain-specific insights."
-      },
-      "confidence": "medium",
-      "classified_by": "rules",
-      "design_label": "Conceptual / theoretical analysis",
-      "approach": "Conceptual",
-      "data_collection_methods": [],
-      "analysis_methods": []
-    },
-    {
-      "citation": "Fernandes et al. (2024)",
-      "author": "Fernandes et al.",
-      "year": "2024",
-      "title": "Analysing India's Cyber Warfare Readiness and Developing a Defence Strategy",
-      "design": "simulation",
-      "other_designs": [
-        "Narrative literature review",
-        "Conceptual / theoretical analysis"
-      ],
-      "samples": [],
-      "collection": [
-        "simulation"
-      ],
-      "analysis": [
-        "simulation-modelling",
-        "narrative-synthesis"
-      ],
-      "countries": [
-        "India"
-      ],
-      "populations": [],
-      "stated_gap": "Synthesizes earlier work without contributing new evidence of its own.",
-      "evidence": {
-        "design": "Through simulation models, the study explores network security behaviours and the impact of defences on network security.",
-        "collection: Simulation-generated data": "Through simulation models, the study explores network security behaviours and the impact of defences on network security.",
-        "analysis: Simulation / computational modelling": "Through simulation models, the study explores network security behaviours and the impact of defences on network security.",
-        "analysis: Narrative synthesis of the literature": "The literature review reveals significant shortcomings in India's cyber defence readiness, especially in real-time threat detection and response capabilities."
-      },
-      "confidence": "high",
-      "classified_by": "rules",
-      "design_label": "Simulation / modelling study",
-      "approach": "Quantitative",
-      "data_collection_methods": [
-        "Simulation-generated data"
-      ],
-      "analysis_methods": [
-        "Simulation / computational modelling",
-        "Narrative synthesis of the literature"
-      ]
-    },
-    {
-      "citation": "Celeny et al. (2024)",
-      "author": "Celeny et al.",
-      "year": "2024",
-      "title": "Cyber risk and the cross-section of stock returns",
-      "design": "computational-experiment",
-      "other_designs": [],
-      "samples": [],
-      "collection": [
-        "datasets"
-      ],
-      "analysis": [
-        "inferential",
-        "performance"
-      ],
-      "countries": [],
-      "populations": [],
-      "stated_gap": "Findings are tied to the specific data and setting studied; transfer to other contexts is untested.",
-      "evidence": {
-        "design": "Our approach outperforms dictionary methods, uses full disclosure and not devoted-only sections, and generates a cyber risk measure uncorrelated with other firms' characteristics.",
-        "collection: Existing datasets / benchmarks": "We extract firms' cyber risk with a machine learning algorithm measuring the proximity between their disclosures and a dedicated cyber corpus.",
-        "analysis: Inferential statistics (regression, significance tests)": "Our approach outperforms dictionary methods, uses full disclosure and not devoted-only sections, and generates a cyber risk measure uncorrelated with other firms' characteristics.",
-        "analysis: Performance metrics and benchmark comparison": "Moreover, a long-short cyber risk portfolio has a significant and positive risk premium of 6.93% p.a., robust to all factors' benchmarks."
-      },
-      "confidence": "high",
-      "classified_by": "rules",
-      "design_label": "Computational experiment (benchmark evaluation)",
-      "approach": "Quantitative",
-      "data_collection_methods": [
-        "Existing datasets / benchmarks"
-      ],
-      "analysis_methods": [
-        "Inferential statistics (regression, significance tests)",
-        "Performance metrics and benchmark comparison"
-      ]
-    },
-    {
-      "citation": "Benkő et al. (2024)",
-      "author": "Benkő et al.",
-      "year": "2024",
-      "title": "The Cyber Alliance Game: How Alliances Influence Cyber-Warfare",
-      "design": "unclassified",
-      "other_designs": [],
-      "samples": [],
-      "collection": [],
-      "analysis": [],
-      "countries": [],
-      "populations": [],
       "stated_gap": "Its argument is not tested against empirical data.",
-      "evidence": {},
-      "confidence": "low",
-      "classified_by": "rules",
-      "design_label": "Unclear from the abstract",
-      "approach": "Not stated",
-      "data_collection_methods": [],
-      "analysis_methods": []
-    },
-    {
-      "citation": "Lau et al. (2024)",
-      "author": "Lau et al.",
-      "year": "2024",
-      "title": "A Novel Mutual Insurance Model for Hedging Against Cyber Risks in Power Systems Deploying Smart Technologies",
-      "design": "case-study",
-      "other_designs": [],
-      "samples": [],
-      "collection": [],
-      "analysis": [
-        "comparative"
-      ],
-      "countries": [],
-      "populations": [],
-      "stated_gap": "The paper leaves unaddressed the question on how to ensure a fair distribution of indemnities, which is crucial for power system owners.",
       "evidence": {
-        "design": "Effectiveness of the proposed Shapley mutual insurance design is validated via case studies.",
-        "analysis: Comparative analysis": "The Shapley premium is compared with existent premium designs."
+        "design": "To achieve this, we synthesize observations from previous studies with new quantitative and qualitative data.",
+        "collection: Observation / fieldwork": "To achieve this, we synthesize observations from previous studies with new quantitative and qualitative data.",
+        "collection: Documents, archives and published literature": "The paper's methodology is grounded in the existing literature on cyber power, which often focuses on its military applications rather than other forms of influence or coercion.",
+        "analysis: Interpretive / historical analysis": "The article contributes to a growing body of literature by tracing and explaining the history of a particular theme within strategic studies."
       },
       "confidence": "medium",
       "classified_by": "rules",
-      "design_label": "Case study",
-      "approach": "Qualitative",
-      "data_collection_methods": [],
-      "analysis_methods": [
-        "Comparative analysis"
-      ]
-    },
-    {
-      "citation": "Ear et al. (2023)",
-      "author": "Ear et al.",
-      "year": "2023",
-      "title": "Towards Automated Cyber Range Design: Characterizing and Matching Demands to Supplies",
-      "design": "conceptual",
-      "other_designs": [],
-      "samples": [],
-      "collection": [],
-      "analysis": [],
-      "countries": [],
-      "populations": [],
-      "stated_gap": "The proposed framework has not been validated empirically.",
-      "evidence": {
-        "design": "To answer this question, we propose an innovative framework to specify cyber range requirements, characterize cyber range architectures (based on our analysis of 45 cyber range architectures), and match cyber ..."
-      },
-      "confidence": "medium",
-      "classified_by": "rules",
-      "design_label": "Conceptual / theoretical analysis",
-      "approach": "Conceptual",
-      "data_collection_methods": [],
-      "analysis_methods": []
-    },
-    {
-      "citation": "Bouke et al. (2023)",
-      "author": "Bouke et al.",
-      "year": "2023",
-      "title": "Turnkey Technology: A Powerful Tool for Cyber Warfare",
-      "design": "unclassified",
-      "other_designs": [],
-      "samples": [],
-      "collection": [],
-      "analysis": [],
-      "countries": [],
-      "populations": [],
-      "stated_gap": "This paper provides a unique perspective on the implications of turnkey technology in cyber warfare, highlighting its advantages, risks, and challenges, as well as the potential strategies for mitigating these concerns.",
-      "evidence": {},
-      "confidence": "low",
-      "classified_by": "rules",
-      "design_label": "Unclear from the abstract",
-      "approach": "Not stated",
-      "data_collection_methods": [],
-      "analysis_methods": []
-    },
-    {
-      "citation": "Kiely et al. (2023)",
-      "author": "Kiely et al.",
-      "year": "2023",
-      "title": "On Autonomous Agents in a Cyber Defence Environment",
-      "design": "unclassified",
-      "other_designs": [],
-      "samples": [],
-      "collection": [],
-      "analysis": [],
-      "countries": [],
-      "populations": [],
-      "stated_gap": "CAGE Challenge 2 required a defensive Blue agent to defend a network from an attacking Red agent.",
-      "evidence": {},
-      "confidence": "low",
-      "classified_by": "rules",
-      "design_label": "Unclear from the abstract",
-      "approach": "Not stated",
-      "data_collection_methods": [],
-      "analysis_methods": []
-    },
-    {
-      "citation": "Li et al. (2023)",
-      "author": "Li et al.",
-      "year": "2023",
-      "title": "Towards Autonomous Cyber Operation Agents: Exploring the Red Case",
-      "design": "simulation",
-      "other_designs": [],
-      "samples": [],
-      "collection": [
-        "simulation",
-        "hardware"
-      ],
-      "analysis": [
-        "simulation-modelling"
-      ],
-      "countries": [],
-      "populations": [],
-      "stated_gap": "Findings are tied to the specific data and setting studied; transfer to other contexts is untested.",
-      "evidence": {
-        "design": "The training environment must simulate CyOps with high fidelity, which the agent aims to learn and accomplish.",
-        "collection: Simulation-generated data": "The training environment must simulate CyOps with high fidelity, which the agent aims to learn and accomplish.",
-        "collection: Laboratory / hardware tests": "We elaborate on their essential requirements and potential solution options, illustrated by some preliminary experimentations in a Cyber Gym for Intelligent Learning (CyGIL) testbed.",
-        "analysis: Simulation / computational modelling": "The training environment must simulate CyOps with high fidelity, which the agent aims to learn and accomplish."
-      },
-      "confidence": "high",
-      "classified_by": "rules",
-      "design_label": "Simulation / modelling study",
-      "approach": "Quantitative",
+      "confidence_reason": "score 4: the abstract names the design; it states how data were collected; it states how data were analysed",
+      "design_label": "Mixed-methods design",
+      "approach": "Mixed methods",
       "data_collection_methods": [
-        "Simulation-generated data",
-        "Laboratory / hardware tests"
+        "Observation / fieldwork",
+        "Documents, archives and published literature"
       ],
       "analysis_methods": [
-        "Simulation / computational modelling"
+        "Interpretive / historical analysis"
       ]
     }
   ],
   "patterns": {
     "designs": {
-      "Conceptual / theoretical analysis": 4,
-      "Unclear from the abstract": 3,
-      "Computational experiment (benchmark evaluation)": 2,
+      "Unclear from the abstract": 8,
+      "Mixed-methods design": 2,
       "Case study": 2,
-      "Systematic / scoping review": 2,
-      "Simulation / modelling study": 2
+      "Cross-sectional survey": 1,
+      "Computational experiment (benchmark evaluation)": 1,
+      "Narrative literature review": 1
     },
     "approaches": {
-      "Conceptual": 4,
-      "Quantitative": 4,
-      "Not stated": 3,
+      "Not stated": 8,
+      "Mixed methods": 2,
+      "Quantitative": 2,
       "Qualitative": 2,
-      "Evidence synthesis": 2
+      "Evidence synthesis": 1
     },
     "data_collection": {
-      "Simulation-generated data": 2,
+      "Documents, archives and published literature": 3,
+      "Interviews": 1,
+      "Questionnaires / surveys": 1,
       "Existing datasets / benchmarks": 1,
-      "Laboratory / hardware tests": 1
+      "Observation / fieldwork": 1
     },
     "analysis": {
+      "Interpretive / historical analysis": 3,
       "Structured assessment frameworks (risk, threat, SWOT)": 2,
-      "Comparative analysis": 2,
-      "Narrative synthesis of the literature": 2,
-      "Simulation / computational modelling": 2,
+      "Narrative synthesis of the literature": 1,
       "Inferential statistics (regression, significance tests)": 1,
-      "Performance metrics and benchmark comparison": 1
+      "Descriptive statistics": 1
     },
     "samples": [
       {
-        "study": "Ahmed et al. (2024)",
-        "count": 815,
-        "unit": "papers",
-        "group": "cases and documents",
-        "text": "815 papers"
+        "study": "Siam et al. (2025)",
+        "count": 300,
+        "unit": "cybersecurity practitioners",
+        "group": "people",
+        "text": "300 cybersecurity practitioners"
       },
       {
-        "study": "Huang et al. (2024)",
-        "count": 449,
-        "unit": "papers",
-        "group": "cases and documents",
-        "text": "449 papers"
+        "study": "Wang et al. (2024)",
+        "count": 604,
+        "unit": "valid tweets",
+        "group": "data items",
+        "text": "604 valid tweets"
       }
     ],
     "countries": {
-      "India": 1
+      "Ukraine": 4,
+      "Russia": 3,
+      "China": 2,
+      "Estonia": 1,
+      "Georgia": 1,
+      "Iran": 1,
+      "United States": 1
     },
     "populations": {
-      "governments and states": 1
+      "governments and states": 4,
+      "organisations and firms": 2,
+      "experts": 1,
+      "practitioners and employees": 1
     }
   },
   "recommendation": {
@@ -507,8 +553,8 @@
     "strands": [
       {
         "approach": "Quantitative",
-        "design": "computational-experiment",
-        "label": "Computational experiment (benchmark evaluation)"
+        "design": "survey",
+        "label": "Cross-sectional survey"
       },
       {
         "approach": "Qualitative",
@@ -517,116 +563,123 @@
       }
     ],
     "alternatives": [
-      "Computational experiment (benchmark evaluation)",
       "Case study",
-      "Simulation / modelling study"
+      "Cross-sectional survey",
+      "Computational experiment (benchmark evaluation)"
     ]
   },
   "comparison": [
     {
-      "study": "Yang et al. (2025)",
-      "their_design": "Conceptual / theoretical analysis",
+      "study": "Kumar et al. (2024)",
+      "their_design": "Mixed-methods design",
       "proposed_design": "Mixed-methods design",
-      "alignment": "Different: no primary data",
-      "proposed_design_adds": "Does not test its claims against new data; the proposed design combines the breadth of quantitative data with the depth of qualitative evidence"
+      "alignment": "Same design",
+      "proposed_design_adds": "Directly comparable results; extend them to a new sample, setting or period"
     },
     {
-      "study": "Diggelen et al. (2025)",
-      "their_design": "Conceptual / theoretical analysis",
+      "study": "Huang (2024)",
+      "their_design": "Unclear from the abstract",
       "proposed_design": "Mixed-methods design",
       "alignment": "Different: no primary data",
-      "proposed_design_adds": "Does not test its claims against new data; the proposed design combines the breadth of quantitative data with the depth of qualitative evidence"
+      "proposed_design_adds": "Does not state its design in the abstract, so check the full text; the proposed design combines the breadth of quantitative data with the depth of qualitative evidence"
     },
     {
-      "study": "Sánchez et al. (2025)",
-      "their_design": "Computational experiment (benchmark evaluation)",
+      "study": "Siam et al. (2025)",
+      "their_design": "Cross-sectional survey",
       "proposed_design": "Mixed-methods design",
       "alignment": "Matches the quantitative strand",
       "proposed_design_adds": "Adds a case study that explains its results"
     },
     {
-      "study": "Yang et al. (2025)",
+      "study": "Ma et al. (2024)",
+      "their_design": "Unclear from the abstract",
+      "proposed_design": "Mixed-methods design",
+      "alignment": "Different: no primary data",
+      "proposed_design_adds": "Does not state its design in the abstract, so check the full text; the proposed design combines the breadth of quantitative data with the depth of qualitative evidence"
+    },
+    {
+      "study": "Unknown (2023)",
+      "their_design": "Unclear from the abstract",
+      "proposed_design": "Mixed-methods design",
+      "alignment": "Different: no primary data",
+      "proposed_design_adds": "Does not state its design in the abstract, so check the full text; the proposed design combines the breadth of quantitative data with the depth of qualitative evidence"
+    },
+    {
+      "study": "Cremer et al. (2024)",
+      "their_design": "Unclear from the abstract",
+      "proposed_design": "Mixed-methods design",
+      "alignment": "Different: no primary data",
+      "proposed_design_adds": "Does not state its design in the abstract, so check the full text; the proposed design combines the breadth of quantitative data with the depth of qualitative evidence"
+    },
+    {
+      "study": "Lindsay (2025)",
       "their_design": "Case study",
       "proposed_design": "Mixed-methods design",
       "alignment": "Matches the qualitative strand",
-      "proposed_design_adds": "Adds a computational experiment (benchmark evaluation) that tests how far its findings generalise"
+      "proposed_design_adds": "Adds a cross-sectional survey that tests how far its findings generalise"
     },
     {
-      "study": "Ahmed et al. (2024)",
-      "their_design": "Systematic / scoping review",
-      "proposed_design": "Mixed-methods design",
-      "alignment": "Different: no primary data",
-      "proposed_design_adds": "Produces no new primary data and is limited by the studies available; the proposed design combines the breadth of quantitative data with the depth of qualitative evidence"
-    },
-    {
-      "study": "Huang et al. (2024)",
-      "their_design": "Systematic / scoping review",
-      "proposed_design": "Mixed-methods design",
-      "alignment": "Different: no primary data",
-      "proposed_design_adds": "Produces no new primary data and is limited by the studies available; the proposed design combines the breadth of quantitative data with the depth of qualitative evidence"
-    },
-    {
-      "study": "Li et al. (2024)",
-      "their_design": "Conceptual / theoretical analysis",
-      "proposed_design": "Mixed-methods design",
-      "alignment": "Different: no primary data",
-      "proposed_design_adds": "Does not test its claims against new data; the proposed design combines the breadth of quantitative data with the depth of qualitative evidence"
-    },
-    {
-      "study": "Fernandes et al. (2024)",
-      "their_design": "Simulation / modelling study",
-      "proposed_design": "Mixed-methods design",
-      "alignment": "Shares its quantitative approach",
-      "proposed_design_adds": "Is only as valid as the model's assumptions, so it needs calibration and validation against real data; the proposed design combines the breadth of quantitative data with the depth of qualitative evidence"
-    },
-    {
-      "study": "Celeny et al. (2024)",
+      "study": "Wang et al. (2024)",
       "their_design": "Computational experiment (benchmark evaluation)",
       "proposed_design": "Mixed-methods design",
-      "alignment": "Matches the quantitative strand",
-      "proposed_design_adds": "Adds a case study that explains its results"
+      "alignment": "Shares its quantitative approach",
+      "proposed_design_adds": "Ties its results to the datasets and settings tested, which may not match real deployments; the proposed design combines the breadth of quantitative data with the depth of qualitative evidence"
     },
     {
-      "study": "Benkő et al. (2024)",
+      "study": "Mohamed et al. (2023)",
+      "their_design": "Narrative literature review",
+      "proposed_design": "Mixed-methods design",
+      "alignment": "Different: no primary data",
+      "proposed_design_adds": "Is open to selection bias and adds no new evidence; the proposed design combines the breadth of quantitative data with the depth of qualitative evidence"
+    },
+    {
+      "study": "Sfetcu (2024)",
       "their_design": "Unclear from the abstract",
       "proposed_design": "Mixed-methods design",
       "alignment": "Different: no primary data",
       "proposed_design_adds": "Does not state its design in the abstract, so check the full text; the proposed design combines the breadth of quantitative data with the depth of qualitative evidence"
     },
     {
-      "study": "Lau et al. (2024)",
+      "study": "Khan (2025)",
       "their_design": "Case study",
       "proposed_design": "Mixed-methods design",
       "alignment": "Matches the qualitative strand",
-      "proposed_design_adds": "Adds a computational experiment (benchmark evaluation) that tests how far its findings generalise"
+      "proposed_design_adds": "Adds a cross-sectional survey that tests how far its findings generalise"
     },
     {
-      "study": "Ear et al. (2023)",
-      "their_design": "Conceptual / theoretical analysis",
-      "proposed_design": "Mixed-methods design",
-      "alignment": "Different: no primary data",
-      "proposed_design_adds": "Does not test its claims against new data; the proposed design combines the breadth of quantitative data with the depth of qualitative evidence"
-    },
-    {
-      "study": "Bouke et al. (2023)",
+      "study": "Rosli (2025)",
       "their_design": "Unclear from the abstract",
       "proposed_design": "Mixed-methods design",
       "alignment": "Different: no primary data",
       "proposed_design_adds": "Does not state its design in the abstract, so check the full text; the proposed design combines the breadth of quantitative data with the depth of qualitative evidence"
     },
     {
-      "study": "Kiely et al. (2023)",
+      "study": "Khoirunnisa et al. (2024)",
       "their_design": "Unclear from the abstract",
       "proposed_design": "Mixed-methods design",
       "alignment": "Different: no primary data",
       "proposed_design_adds": "Does not state its design in the abstract, so check the full text; the proposed design combines the breadth of quantitative data with the depth of qualitative evidence"
     },
     {
-      "study": "Li et al. (2023)",
-      "their_design": "Simulation / modelling study",
+      "study": "Mohammed (2025)",
+      "their_design": "Unclear from the abstract",
       "proposed_design": "Mixed-methods design",
-      "alignment": "Shares its quantitative approach",
-      "proposed_design_adds": "Is only as valid as the model's assumptions, so it needs calibration and validation against real data; the proposed design combines the breadth of quantitative data with the depth of qualitative evidence"
+      "alignment": "Different: no primary data",
+      "proposed_design_adds": "Does not state its design in the abstract, so check the full text; the proposed design combines the breadth of quantitative data with the depth of qualitative evidence"
+    },
+    {
+      "study": "Žilinčík et al. (2023)",
+      "their_design": "Mixed-methods design",
+      "proposed_design": "Mixed-methods design",
+      "alignment": "Same design",
+      "proposed_design_adds": "Directly comparable results; extend them to a new sample, setting or period"
     }
-  ]
+  ],
+  "citation_check": {
+    "unresolved": [],
+    "uncited": [
+      "Žilinčík (2023)"
+    ],
+    "cited_sentence_share": 0.53
+  }
 }

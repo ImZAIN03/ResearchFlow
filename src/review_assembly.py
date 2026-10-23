@@ -11,6 +11,13 @@ cited, in the chosen citation style. quality_report() then scores how ready the 
     Length & register  10  answers near the suggested length, academic register
 
 The score measures form, not whether the arguments are right; the report says so.
+
+polish_review() is the post-generation cleanup of a freshly written Phase 1 review, run before it is
+exported: it repairs malformed in-text citations, corrects a cited year when the surname identifies
+one reviewed paper, reports citations that resolve to no paper and papers never cited, and flags
+prose sections whose key terms are under 70% grounded in the papers with a "Review needed" note
+(which assemble() removes once the user has worked through the review). polish_research_gaps()
+expands every research gap to at least two sentences before the review is built.
 """
 from __future__ import annotations
 
@@ -19,14 +26,24 @@ from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Sequence, Tuple
 
 from .citation_formatter import CitationFormatter
-from .critical_gaps import MARKER_PATTERN
+from .critical_gaps import GUIDANCE_LINE, MARKER_LINE, MARKER_PATTERN, USER_SHOULD_VERIFY
 from .gap_input import MOVE_LABELS, AnswerCheck, placeholders_in
 from .gap_parser import ReviewDocument, citations_in
 from .gap_research import Corpus
+from .llm_synthesis import (
+    MIN_GAP_SENTENCES,
+    REVIEW_GROUNDING,
+    PaperSummary,
+    expand_gap,
+    format_gaps,
+    parse_gaps,
+    synthesis_grounding,
+)
 from .paper_discovery import Paper
 from .text_polish import Polished, restyle_citations
 
 GUIDE_LINE = "> **How to complete this review.**"
+REVIEW_FLAG = f"> **{USER_SHOULD_VERIFY}**"
 READY = "Ready for submission"
 NEARLY_READY = "Nearly ready: address the issues below"
 NEEDS_REVISION = "Needs revision"
@@ -79,6 +96,9 @@ def assemble(
         if line.startswith(GUIDE_LINE):
             del lines[i : i + 2 if i + 1 < len(lines) and not lines[i + 1].strip() else i + 1]
             break
+    # Grounding notes from polish_review() are for the user while completing the review, not the reader.
+    # So are the guidance notes ([USER SHOULD VERIFY], [OPTIONAL POLISH], ...) on every phase's output.
+    lines = [line for line in lines if not line.startswith(REVIEW_FLAG) and not GUIDANCE_LINE.match(line.strip())]
     body = re.sub(r"\n{3,}", "\n\n", "\n".join(lines)).rstrip()
 
     # References: the review's papers plus the newly found papers the user cited.
@@ -309,3 +329,152 @@ def report_markdown(
         "",
     ]
     return "\n".join(lines)
+
+
+# ---- post-generation polish (Phase 1) -------------------------------------------------------
+
+# Prose sections whose grounding is checked; the others are tables, protocol text or markers.
+GROUNDED_SECTIONS = ("Introduction", "Literature Review", "Discussion", "Conclusion")
+NAME = r"[A-Z][\w'’-]+"
+# Malformed in-text citations the model writes, and their repair to "(Surname, Year)" form.
+MALFORMED_CITATIONS = (
+    (re.compile(rf"\[({NAME}(?: et al\.?)?),\s*(\d{{4}}|n\.d\.)\]"), r"(\1, \2)"),  # echoed "[Surname, Year]" context tags
+    (re.compile(rf"\(({NAME}(?: et al\.?)?)\s+(\d{{4}}|n\.d\.)\)"), r"(\1, \2)"),  # "(Surname 2020)": missing comma
+    (re.compile(rf"\b({NAME}) et al(?:\.|\b)\s*,\s*(?=\d{{4}}|n\.d\.)"), r"\1 et al., "),  # "et al, 2020"
+    (re.compile(rf"\(({NAME}(?: et al\.)?),(\d{{4}}|n\.d\.)\)"), r"(\1, \2)"),  # "(Surname,2020)": missing space
+)
+
+
+@dataclass
+class PolishReport:
+    markdown: str
+    fixed: List[str] = field(default_factory=list)  # repairs made, for the log
+    unresolved: List[str] = field(default_factory=list)  # citations matching no reviewed paper
+    uncited: List[str] = field(default_factory=list)  # reviewed papers never cited in the text
+    flagged: List[Tuple[str, float]] = field(default_factory=list)  # (section, grounding) below REVIEW_GROUNDING
+
+    @property
+    def issues(self) -> List[str]:
+        issues = []
+        if self.unresolved:
+            issues.append("Citations matching no reviewed paper: " + ", ".join(self.unresolved))
+        if self.uncited:
+            issues.append("Reviewed papers never cited in the text: " + ", ".join(self.uncited))
+        issues += [f"Section {name!r} is only {score:.0%} grounded in the papers; check it before submitting"
+                   for name, score in self.flagged]
+        return issues
+
+
+def polish_research_gaps(research_gaps: str, summaries: Sequence[PaperSummary], topic: str) -> str:
+    """Every gap description expanded to at least MIN_GAP_SENTENCES sentences (see expand_gap)."""
+    gaps = parse_gaps(research_gaps)
+    if not gaps:
+        return research_gaps
+    return format_gaps([(title, expand_gap(desc, summaries, topic, MIN_GAP_SENTENCES)) for title, desc in gaps])
+
+
+def _fix_citation_format(body: str, fixed: List[str]) -> str:
+    total = 0
+    for pattern, replacement in MALFORMED_CITATIONS:
+        body, count = pattern.subn(replacement, body)
+        total += count
+    if total:
+        fixed.append(f"{total} malformed citation(s) reformatted to (Author, Year)")
+    return body
+
+
+def _fix_citation_years(body: str, papers: Sequence[Paper], fixed: List[str], unresolved: List[str]) -> str:
+    """Corrects the year of a citation whose surname belongs to exactly one reviewed paper; reports the rest."""
+    known = {_cite_key(p) for p in papers}
+    by_surname: Dict[str, List[str]] = {}
+    for surname, year in known:
+        by_surname.setdefault(surname, []).append(year)
+    for surname, year in citations_in(body):
+        if (surname, year) in known:
+            continue
+        years = by_surname.get(surname, [])
+        if len(years) == 1:
+            correct = years[0]
+            body = re.sub(
+                rf"\b({re.escape(surname)}(?: et al\.?)?)(, | \()({re.escape(year)})(?!\w)",
+                lambda m: f"{m.group(1)}{m.group(2)}{correct}", body,
+            )
+            fixed.append(f"{surname} ({year}) corrected to {surname} ({correct})")
+        elif surname[:1].isupper() and not re.fullmatch(r"[A-Z]+", surname):  # skip acronyms ("NATO, 2020")
+            unresolved.append(f"{surname} ({year})")
+    return body
+
+
+def _section_spans(lines: Sequence[str]) -> List[Tuple[str, int, int]]:
+    """(heading, heading line index, end index) for every "## " section."""
+    starts = [(i, line[3:].strip()) for i, line in enumerate(lines) if line.startswith("## ")]
+    return [(name, i, starts[n + 1][0] if n + 1 < len(starts) else len(lines)) for n, (i, name) in enumerate(starts)]
+
+
+def _section_prose(lines: Sequence[str]) -> str:
+    return "\n".join(
+        line for line in lines
+        if line.strip() and not line.startswith(("#", ">", "|", "!", "*Table", "*Figure")) and not MARKER_LINE.match(line)
+    )
+
+
+def polish_review(markdown: str, papers: Sequence[Paper], source: str) -> PolishReport:
+    """Post-generation cleanup of a Phase 1 review: citations repaired and audited, weak sections flagged.
+
+    `source` is the papers' text (summaries and abstracts) the sections' grounding is measured against.
+    The bibliography after "## References" is never changed.
+    """
+    body, sep, references = markdown.partition("\n## References")
+    report = PolishReport(markdown=markdown)
+    body = _fix_citation_format(body, report.fixed)
+    body = _fix_citation_years(body, papers, report.fixed, report.unresolved)
+    report.unresolved = list(dict.fromkeys(report.unresolved))
+    cited = set(citations_in(body))
+    report.uncited = [f"{p.first_author_surname} ({p.year or 'n.d.'})" for p in papers if _cite_key(p) not in cited]
+
+    lines = body.splitlines()
+    for name, start, end in reversed(_section_spans(lines)):
+        if name not in GROUNDED_SECTIONS:
+            continue
+        prose = _section_prose(lines[start + 1 : end])
+        if not prose:
+            continue
+        score = synthesis_grounding(prose, source)
+        if score < REVIEW_GROUNDING:
+            report.flagged.insert(0, (name, score))
+            lines[start + 1 : start + 1] = [
+                "",
+                f"{REVIEW_FLAG} Only {score:.0%} of this section's key terms appear in the reviewed papers. Check "
+                "each claim against the sources and revise or remove what they do not support.",
+            ]
+    report.markdown = "\n".join(lines) + ("\n" if body.endswith("\n") else "") + sep + references
+    return report
+
+
+def citation_audit(
+    markdown: str, known: Sequence[Tuple[str, str]], extra_known: Sequence[Tuple[str, str]] = ()
+) -> Dict[str, object]:
+    """Checks a phase's in-text citations against the reviewed papers ((surname, year) pairs).
+
+    Returns {"unresolved": citations matching no reviewed paper (an invented author or a wrong year),
+    "uncited": reviewed papers the text never cites}; the references section is ignored.
+    """
+    body = markdown.split("\n## References")[0]
+    known_set = {(surname, str(year)) for surname, year in known}
+    cited = citations_in(body)
+    allowed = known_set | {(surname, str(year)) for surname, year in extra_known}
+    unresolved = [
+        f"{s} ({y})" for s, y in cited
+        if (s, y) not in allowed and not re.fullmatch(r"[A-Z]+", s)  # acronyms ("NATO, 2020") are not authors
+    ]
+    cited_set = set(cited)
+    uncited = [f"{s} ({y})" for s, y in dict.fromkeys(known_set) if (s, y) not in cited_set]
+    # Share of the prose's sentences that cite a paper: a measure of how far its claims are attributed.
+    prose = [
+        line for line in body.splitlines()
+        if line.strip() and not line.startswith(("#", "|", ">", "*", "!")) and not MARKER_LINE.match(line)
+    ]
+    sentences = [s for line in prose for s in re.split(r"(?<=[.!?])\s+(?=[A-Z])", line) if len(s.split()) >= 6]
+    with_citation = [s for s in sentences if citations_in(s)]
+    share = round(len(with_citation) / len(sentences), 2) if sentences else 0.0
+    return {"unresolved": list(dict.fromkeys(unresolved)), "uncited": sorted(uncited), "cited_sentence_share": share}

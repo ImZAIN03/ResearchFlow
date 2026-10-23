@@ -5,296 +5,292 @@
   "citation_style": "apa",
   "papers": [
     {
-      "title": "Toward a Multi-Echelon Cyber Warfare Theory: A Meta-Game-Theoretic Paradigm for Defense and Dominance",
+      "title": "Threat Modeling for Cyber Warfare Against Less Cyber-Dependent Adversaries",
       "authors": [
-        "Ya-Ting Yang",
-        "Quanyan Zhu"
+        "Shreyas Kumar",
+        "Gourav Nagar"
       ],
-      "abstract": "Cyber warfare has become a central element of modern conflict, especially within multi-domain operations. As both a distinct and critical domain, cyber warfare requires integrating defensive and offensive technologies into coherent strategies. While prior research has emphasized isolated tactics or fragmented technologies, a holistic understanding is essential for effective resource deployment and risk mitigation. Game theory offers a unifying framework for this purpose. It not only models attacker-defender interactions but also provides quantitative tools for equilibrium analysis, risk assessment, and strategic reasoning. Integrated with modern AI techniques, game-theoretic models enable the design and optimization of strategies across multiple levels of cyber warfare, from policy and strategy to operations, tactics, and technical implementations. These models capture the paradoxical logic of conflict, where more resources do not always translate into greater advantage, and where nonlinear dynamics govern outcomes. To illustrate the approach, this chapter examines RedCyber, a synthetic cyber conflict, demonstrating how game-theoretic methods capture the interdependencies of cyber operations. The chapter concludes with directions for future research on resilience, cros-echelon planning, and the evolving role of AI in cyber warfare.",
-      "year": 2025,
-      "venue": "arXiv",
-      "url": "http://arxiv.org/abs/2509.08976v2",
-      "pdf_url": "https://arxiv.org/pdf/2509.08976v2",
-      "doi": null,
-      "source": "arxiv",
-      "citation_count": 0,
-      "summary": "Cyber warfare has become a central element of modern conflict, especially within multi-domain operations. As both a distinct and critical domain, cyber warfare requires integrating defensive and offensive technologies into coherent strategies. While prior research has emphasized isolated tactics or fragmented technologies, a holistic understanding is essential for effective resource deployment and risk mitigation.",
+      "abstract": "Cyber warfare poses a substantial threat in today's interconnected world, where digital attacks can transcend physical boundaries and affect targets globally. Technologically, less advanced adversaries, such as smaller nations or organizations with limited resources, face unique challenges in defending against sophisticated cyber attacks from more advanced entities. This paper explores the threat landscape for these adversaries and proposes a tailored threat modeling framework to address their specific vulnerabilities and needs. By examining the evolution of cyber warfare, including historical incidents and the increasing sophistication of cyber attacks, the study highlights the limitations of existing threat modeling approaches like the Cyber Kill Chain, MITRE ATT&CK Framework, and SWOT analysis when applied to less advanced adversaries. A comprehensive literature review underscores the gaps in current research, particularly the necessity for frameworks tailored to asymmetric technological capabilities. Employing a mixed methods approach, the research combines qualitative and quantitative data from primary sources, such as interviews with cybersecurity experts, and secondary sources, including existing literature and case studies. The proposed framework focuses on asset identification and classification, vulnerability assessment, threat analysis, and risk assessment. Proactive measures, such as basic cyber hygiene practices, advanced threat detection systems, and collaboration with technologically advanced allies, are recommended alongside reactive measures like incident response planning and disaster recovery. The importance of international cooperation and information sharing is also emphasized. Case studies of cyber incidents involving less advanced adversaries, such as the attacks on Estonia, Georgia, and Ukraine, validate the framework and demonstrate its practical application. The findings indicate that the tailored threat modeling framework effectively addresses the unique challenges faced by less advanced adversaries, enhancing their ability to mitigate risks and improve their cybersecurity posture. This study provides valuable insights and offers a practical framework to bolster defenses against cyber warfare, with future research needed to explore emerging threats and technologies further.",
+      "year": 2024,
+      "venue": "European Conference on Cyber Warfare and Security",
+      "url": "https://www.semanticscholar.org/paper/09b9496d83e9bb0a61bd6a506fd4ef8dfd36543b",
+      "pdf_url": "https://doi.org/10.34190/eccws.23.1.2462",
+      "doi": "10.34190/eccws.23.1.2462",
+      "source": "semantic_scholar",
+      "citation_count": 26,
+      "summary": "Cyber warfare poses a substantial threat in today's interconnected world, where digital attacks can transcend physical boundaries and affect targets globally. Technologically less advanced adversaries face unique challenges in defending against sophisticated cyber attacks from more advanced entities due to their limited resources. The study presents the author's study on the threat landscape for these adversaries and proposes a tailored threat modeling framework tailored to address their specific vulnerabilities and needs. The proposed framework focuses on asset identification, classification, vulnerability assessment, threat analysis, and risk assessment.",
       "key_findings": [],
-      "gap": "The proposed framework has not been validated empirically."
+      "gap": "Technologically, less advanced adversaries, such as smaller nations or organizations with limited resources, face unique challenges in defending against sophisticated cyber attacks from more advanced entities."
     },
     {
-      "title": "Designing AI-Enabled Countermeasures to Cognitive Warfare",
+      "title": "Navigating digital divide: exploring the influence of ideological and political education on cyber security and digital literacy amid information warfare",
       "authors": [
-        "Jurriaan van Diggelen",
-        "Eugene Aidman",
-        "Jazz Rowa",
-        "Julian Vince"
+        "Baihang Huang"
       ],
-      "abstract": "Foreign information operations on social media platforms pose significant risks to democratic societies. With the rise of Artificial Intelligence (AI), this threat is likely to intensify, potentially overwhelming human defenders. To achieve the necessary scale and tempo to defend against these threats, utilizing AI as part of the solution seems inevitable. Although there has been a significant debate on AI in Lethal Autonomous Weapon Systems (LAWS), it is equally likely that AI will be widely used in information operations for defensive and offensive objectives. Similar to LAWS, AI-driven information operations occupy a highly sensitive moral domain where removing human involvement in the tactical decision making process raises ethical concerns. Although AI has yet to revolutionize the field, a solid ethical stance is urgently needed on how AI can be responsibly used to defend against information operations on social media platforms. This paper proposes possible AI-enabled countermeasures against cognitive warfare and argues how they can be developed in a responsible way, such that meaningful human control is preserved.",
-      "year": 2025,
-      "venue": "arXiv",
-      "url": "http://arxiv.org/abs/2504.11486v1",
-      "pdf_url": "https://arxiv.org/pdf/2504.11486v1",
-      "doi": null,
-      "source": "arxiv",
-      "citation_count": 0,
-      "summary": "Foreign information operations on social media platforms pose significant risk to demo-cratic societies. With the rise of Artificial Intelligence (AI), this threat is likely to intensify, potentially overwhelming human defenders. To achieve the necessary scale and tempo to defend against these threats, utilizing AI as part of the solution seems inevitable. Althoug there has been a significant debate on AI in Lethal Auto-nomous Weapon Systems (LAWS), it is equally likely that AI will be widely used in information operations for defe-nsive and offensive objectives.",
+      "abstract": "",
+      "year": 2024,
+      "venue": "Current Psychology",
+      "url": "https://www.semanticscholar.org/paper/5089b31eabc1d9518b52b8547f75a23da7a45817",
+      "pdf_url": "",
+      "doi": "10.1007/s12144-024-06106-1",
+      "source": "semantic_scholar",
+      "citation_count": 20,
+      "summary": "Huang (2024) offers an analytical treatment of navigating digital divide, published in Current Psychology. The work centres on exploring, influence, ideological and political. Its main limitation is that it makes an argument that has not been tested against empirical data. For research on Cyber Warfare, it contributes a perspective on digital and navigating.",
       "key_findings": [],
       "gap": "Its argument is not tested against empirical data."
     },
     {
-      "title": "A Global Analysis of Cyber Threats to the Energy Sector: \"Currents of Conflict\" from a Geopolitical Perspective",
+      "title": "AI-Driven Cyber Threat Intelligence Systems: A National Framework for Proactive Defense Against Evolving Digital Warfare",
       "authors": [
-        "Gustavo Sánchez",
-        "Ghada Elbez",
-        "Veit Hagenmeyer"
+        "Md Abubokor Siam",
+        "Ahmed Shan-A-Alahi",
+        "Md Kazi Tuhin",
+        "Emran Hossain",
+        "Monjira Bashir",
+        "Khadeza Yesmin Lucky",
+        "Syed Mohammed Muhive Uddin",
+        "Abdullah Al Zaiem"
       ],
-      "abstract": "The escalating frequency and sophistication of cyber threats increased the need for their comprehensive understanding. This paper explores the intersection of geopolitical dynamics, cyber threat intelligence analysis, and advanced detection technologies, with a focus on the energy domain. We leverage generative artificial intelligence to extract and structure information from raw cyber threat descriptions, enabling enhanced analysis. By conducting a geopolitical comparison of threat actor origins and target regions across multiple databases, we provide insights into trends within the general threat landscape. Additionally, we evaluate the effectiveness of cybersecurity tools -- with particular emphasis on learning-based techniques -- in detecting indicators of compromise for energy-targeted attacks. This analysis yields new insights, providing actionable information to researchers, policy makers, and cybersecurity professionals.",
+      "abstract": "The current study suggests the national framework based on the concept of AI-enabled cyber threat intelligence systems. The increased risk of digital warfare and the shortcomings of the traditional patterns of cybersecurity. The use of artificial intelligence in the early warning of such threats, real-time response, and superior data analysis. It is a crucial concern to national security. The study will determine the contribution of AI-driven CTIS to the improvement of cyber defense capabilities in government and defense. It is critical infrastructure sectors and determines factors that affect these capabilities. The descriptive research design was used, and information was gathered using structured surveys that were administered to 300 cybersecurity practitioners in large and small firms. The findings indicate the maturity of an AI system, and the greater the level of automation in detecting the threat, the better the detection accuracy and the faster the incident response time. A multivariate regression model revealed that there was a positive relationship regarding the independent variables and the effectiveness of AI-CTIS, checking in with an R² = 0.76 and a p < 0.001. Inter-agency cooperation and learning of workforce skills were defined as the most crucial ingredients in the streamlining of CTIS performance. The research project has not overlooked some of the major challenges, which include the failure to standardize, poor policy infrastructure, and interoperability. The national cybersecurity approach is the proactive defense strategy. Companies remain digitally resilient in the long-term perspective. It is high quotients of targeted cyber threats that are changing in detail and quantity.",
       "year": 2025,
-      "venue": "arXiv",
-      "url": "http://arxiv.org/abs/2509.22280v1",
-      "pdf_url": "https://arxiv.org/pdf/2509.22280v1",
-      "doi": "10.17560/atp.v67i9.2797",
-      "source": "arxiv",
-      "citation_count": 0,
-      "summary": "Geopolitiques plays a defining role in shaping cyber threats, attack motivations, and strategies employed by both state and non-state actors. The emergence of regional hotspots has led to the formation of cyber alliances, where nations align their cyber defenses with strategic partners. Countries within alliances such as NATO and BRICS often engage in coordinated cyber operations. Target selection in cyber conflicts is deeply rooted in geopolitical tensions, with adversarial states strategically targeting government agencies, critical infrastructure, and economic assets of rival nations.",
+      "venue": "International Journal of Computational and Experimental Science and Engineering",
+      "url": "https://www.semanticscholar.org/paper/67a4cc313c18e125f74531c057b35aec1220190f",
+      "pdf_url": "https://ijcesen.com/index.php/ijcesen/article/download/3793/1066",
+      "doi": "10.22399/ijcesen.3793",
+      "source": "semantic_scholar",
+      "citation_count": 12,
+      "summary": "The current study suggests the National Framework based on the concept of AI-enabled Cyber ThreaT IntElLemEce Sys. It is a crucial concern to national security due to its impact on digital warfare and shortcoming in traditional patterns of cybersecurity. The authors have used structured survey data to gather information about independent variables, effectiveness of AI-CTIS, checking in with an R² = 0.76 and a p < 0.001. Inter-agency cooperation and learning of workforce skills are defined as the most crucial ingredients in the streamlining of CTIS performance.",
       "key_findings": [],
-      "gap": "Findings are tied to the specific data and setting studied; transfer to other contexts is untested."
+      "gap": "The research project has not overlooked some of the major challenges, which include the failure to standardize, poor policy infrastructure, and interoperability."
     },
     {
-      "title": "A Multi-Resolution Dynamic Game Framework for Cross-Echelon Decision-Making in Cyber Warfare",
+      "title": "Non-cooperative game theory with generative adversarial network for effective decision-making in military cyber warfare",
       "authors": [
-        "Ya-Ting Yang",
-        "Quanyan Zhu"
+        "Xianlong Ma",
+        "Walid Abdelfattah",
+        "Daniel Luo",
+        "Nisreen Innab",
+        "Meshal Shutaywi",
+        "Wejdan Deebani"
       ],
-      "abstract": "Cyber warfare has become a critical dimension of modern conflict, driven by society's increasing dependence on interconnected digital and physical infrastructure. Effective cyber defense often requires decision-making at different echelons, where the tactical layer focuses on detailed actions such as techniques, tactics, and procedures, while the strategic layer addresses long-term objectives and coordinated planning. Modeling these interactions at different echelons remains challenging due to the dynamic, large-scale, and interdependent nature of cyber environments. To address this, we propose a multi-resolution dynamic game framework in which the tactical layer captures fine-grained interactions using high-resolution extensive-form game trees, while the strategic layer is modeled as a Markov game defined over lower-resolution states abstracted from those game trees. This framework supports scalable reasoning and planning across different levels of abstraction through zoom-in and zoom-out operations that adjust the granularity of the modeling based on operational needs. A case study demonstrates how the framework works and its effectiveness in improving the defender's strategic advantage.",
-      "year": 2025,
-      "venue": "arXiv",
-      "url": "http://arxiv.org/abs/2507.03021v1",
-      "pdf_url": "https://arxiv.org/pdf/2507.03021v1",
-      "doi": null,
-      "source": "arxiv",
-      "citation_count": 0,
-      "summary": "Cyber warfare has become a critical dimension of modern conflict, driven by society's increasing dependence on interconnected digital and physical infrastructure. Effective cyber defense often requires decision-making at different echelons, where the tactical layer focuses on detailed actions such as techniques, tactics, and procedures, while the strategic layer addresses long-term objectives and coordinated planning. Modeling these interactions at different echelons remains challenging due to the dynamic, large-scale, and interdependent nature of cyber environments.",
-      "key_findings": [
-        "A case study demonstrates how the framework works and its effectiveness in improving the defender's strategic advantage."
-      ],
-      "gap": "Modeling these interactions at different echelons remains challenging due to the dynamic, large-scale, and interdependent nature of cyber environments."
-    },
-    {
-      "title": "Cyber Protection Applications of Quantum Computing: A Review",
-      "authors": [
-        "Ummar Ahmed",
-        "Tuomo Sipola",
-        "Jari Hautamäki"
-      ],
-      "abstract": "Quantum computing is a cutting-edge field of information technology that harnesses the principles of quantum mechanics to perform computations. It has major implications for the cyber security industry. Existing cyber protection applications are working well, but there are still challenges and vulnerabilities in computer networks. Sometimes data and privacy are also compromised. These complications lead to research questions asking what kind of cyber protection applications of quantum computing are there and what potential methods or techniques can be used for cyber protection? These questions will reveal how much power quantum computing has and to what extent it can outperform the conventional computing systems. This scoping review was conducted by considering 815 papers. It showed the possibilities that can be achievedif quantum technologies are implemented in cyber environments. This scoping review discusses various domains such as algorithms and applications, bioinformatics, cloud and edge computing, the organization of complex systems, application areas focused on security and threats, and the broader quantum computing ecosystem. In each of these areas, there is significant scope for quantum computing to be implemented and to revolutionize the working environment. Numerous quantum computing applications for cyber protection and a number of techniques to protect our data and privacy were identified. The results are not limited to network security but also include data security. This paper also discusses societal aspects, e.g., the applications of quantum computing in the social sciences. This scoping review discusses how to enhance the efficiency and security of quantum computing in various cyber security domains. Additionally, it encourages the reader to think about what kind of techniques and methods can be deployed to secure the cyber world.",
+      "abstract": "",
       "year": 2024,
-      "venue": "arXiv",
-      "url": "http://arxiv.org/abs/2406.13259v3",
-      "pdf_url": "https://arxiv.org/pdf/2406.13259v3",
-      "doi": "10.34190/eccws.23.1.2182",
-      "source": "arxiv",
-      "citation_count": 0,
-      "summary": "Quantum computing is a cutting-edge field of information technology that harnesses the principles of quantum mechanics to perform computation. It has major implications for the cyber security industry. Existing cyber protection applications are working well, but there are still chaos and vulnerabilities in computer networks. Sometimes data and privacy are also compromised.",
-      "key_findings": [],
-      "gap": "Existing cyber protection applications are working well, but there are still challenges and vulnerabilities in computer networks."
-    },
-    {
-      "title": "Security Modelling for Cyber-Physical Systems: A Systematic Literature Review",
-      "authors": [
-        "Shaofei Huang",
-        "Christopher M. Poskitt",
-        "Lwin Khin Shar"
-      ],
-      "abstract": "Cyber-physical systems are at the intersection of digital technology and engineering domains, rendering them high-value targets of sophisticated and well-funded cybersecurity threat actors. Prominent cybersecurity attacks on CPS have brought attention to the vulnerability of these systems and the inherent weaknesses of critical infrastructure reliant on them. Security modelling for CPS is an important mechanism to systematically identify and assess vulnerabilities, threats, and risks throughout system life cycles, and to ultimately ensure system resilience, safety, and reliability. This survey delves into state-of-the-art research on CPS security modelling, encompassing both threat and attack modelling. While these terms are sometimes used interchangeably, they are different concepts. This paper elaborates on the differences between threat and attack modelling, examining their implications for CPS security. We conducted a systematic search that yielded 449 papers, from which 32 were selected and categorised into three clusters: those focused on threat modelling methods, attack modelling methods, and literature reviews. Specifically, we sought to examine what security modelling methods exist today, and how they address real-world cybersecurity threats and CPS-specific attacker capabilities throughout the life cycle of CPS, which typically span longer durations compared to traditional IT systems. This paper also highlights several limitations in existing research, wherein security models adopt simplistic approaches that do not adequately consider the dynamic, multi-layer, multi-path, and multi-agent characteristics of real-world cyber-physical attacks.",
-      "year": 2024,
-      "venue": "arXiv",
-      "url": "http://arxiv.org/abs/2404.07527v3",
-      "pdf_url": "https://arxiv.org/pdf/2404.07527v3",
-      "doi": "10.1145/3776549",
-      "source": "arxiv",
-      "citation_count": 0,
-      "summary": "Cyber-physical systems are at the intersection of digital technology and engineering domains, rendering them high-value targets of sophisticated and well-funded cybersecurity threat actors. Prominent cybersecurity attacks on CPS have brought attention to the vulnerability of these systems and the inherent weaknesses of critical infrastructure reliant on them. Security modelling for CPS is an important mechanism to systematically identify and assess vulnerabilities, threats, and risks throughout system life cycles, and to ultimately ensure system resilience, safety, and reliability.",
-      "key_findings": [],
-      "gap": "Synthesizes earlier work without contributing new evidence of its own."
-    },
-    {
-      "title": "Symbiotic Game and Foundation Models for Cyber Deception Operations in Strategic Cyber Warfare",
-      "authors": [
-        "Tao Li",
-        "Quanyan Zhu"
-      ],
-      "abstract": "We are currently facing unprecedented cyber warfare with the rapid evolution of tactics, increasing asymmetry of intelligence, and the growing accessibility of hacking tools. In this landscape, cyber deception emerges as a critical component of our defense strategy against increasingly sophisticated attacks. This chapter aims to highlight the pivotal role of game-theoretic models and foundation models (FMs) in analyzing, designing, and implementing cyber deception tactics. Game models (GMs) serve as a foundational framework for modeling diverse adversarial interactions, allowing us to encapsulate both adversarial knowledge and domain-specific insights. Meanwhile, FMs serve as the building blocks for creating tailored machine learning models suited to given applications. By leveraging the synergy between GMs and FMs, we can advance proactive and automated cyber defense mechanisms by not only securing our networks against attacks but also enhancing their resilience against well-planned operations. This chapter discusses the games at the tactical, operational, and strategic levels of warfare, delves into the symbiotic relationship between these methodologies, and explores relevant applications where such a framework can make a substantial impact in cybersecurity. The chapter discusses the promising direction of the multi-agent neurosymbolic conjectural learning (MANSCOL), which allows the defender to predict adversarial behaviors, design adaptive defensive deception tactics, and synthesize knowledge for the operational level synthesis and adaptation. FMs serve as pivotal tools across various functions for MANSCOL, including reinforcement learning, knowledge assimilation, formation of conjectures, and contextual representation. This chapter concludes with a discussion of the challenges associated with FMs and their application in the domain of cybersecurity.",
-      "year": 2024,
-      "venue": "arXiv",
-      "url": "http://arxiv.org/abs/2403.10570v2",
-      "pdf_url": "https://arxiv.org/pdf/2403.10570v2",
-      "doi": null,
-      "source": "arxiv",
-      "citation_count": 0,
-      "summary": "Game-theoretic models (GMs) serve as a foundational framework for modeling diverse adversarial interactions. Meanwhile, Foundation Models (FMs) serve as the building blocks for creating tailored machine learning models that can advance proactive and automated cyber defenses. The chapter discusses the games at tactical, operational, and strategic levels of warfare, delves into the symbiotiic relationship between these methodologies, and explores relevant applications where such a framework can make a substantial impact in cybersecurity. MANSCOL, which allows defenders to predict adversarial behavior, designs adaptive defections tactics, and synthesizes knowledge for operational level synthesis and adaptation.",
-      "key_findings": [],
-      "gap": "This chapter concludes with a discussion of the challenges associated with FMs and their application in the domain of cybersecurity."
-    },
-    {
-      "title": "Analysing India's Cyber Warfare Readiness and Developing a Defence Strategy",
-      "authors": [
-        "Yohan Fernandes",
-        "Nasr Abosata"
-      ],
-      "abstract": "The demand for strong cyber defence measures grows, especially in countries such as India, where the rate of digitalization far exceeds cybersecurity developments. The increasing amount of cyber threats highlights the urgent need to strengthen cyber defences. The literature review reveals significant shortcomings in India's cyber defence readiness, especially in real-time threat detection and response capabilities. Through simulation models, the study explores network security behaviours and the impact of defences on network security. The next section of this study focuses on implementing a cyber threat detection system that uses machine learning to identify and categorise cyber threats in real time, followed by strategies to integrate it into India's present infrastructure. Also, the study proposes an educational framework for training cyber professionals. The study concludes with a reflection on the implemented defence strategies. It adds to the continuing discussion about national security by providing an in-depth investigation of cyber warfare preparation and recommending a systematic method to improving through both technological and educational solutions.",
-      "year": 2024,
-      "venue": "arXiv",
-      "url": "http://arxiv.org/abs/2406.12568v1",
-      "pdf_url": "https://arxiv.org/pdf/2406.12568v1",
-      "doi": null,
-      "source": "arxiv",
-      "citation_count": 0,
-      "summary": "The demand for strong cyber defence measures grows, especially in countries such as India, where the rate of digitalization far exceeds cybersecurity developments. The increasing amount of cyber threats highlights the urgent need to strengthen cyber defences. The literature review reveals significant shortcomings in India's cyber defence readiness, especially in real-time threat detection and response capabilities.",
-      "key_findings": [
-        "The literature review reveals significant shortcomings in India's cyber defence readiness, especially in real-time threat detection and response capabilities."
-      ],
-      "gap": "Synthesizes earlier work without contributing new evidence of its own."
-    },
-    {
-      "title": "Cyber risk and the cross-section of stock returns",
-      "authors": [
-        "Daniel Celeny",
-        "Loïc Maréchal"
-      ],
-      "abstract": "We extract firms' cyber risk with a machine learning algorithm measuring the proximity between their disclosures and a dedicated cyber corpus. Our approach outperforms dictionary methods, uses full disclosure and not devoted-only sections, and generates a cyber risk measure uncorrelated with other firms' characteristics. We find that a portfolio of US-listed stocks in the high cyber risk quantile generates an excess return of 18.72% p.a. Moreover, a long-short cyber risk portfolio has a significant and positive risk premium of 6.93% p.a., robust to all factors' benchmarks. Finally, using a Bayesian asset pricing method, we show that our cyber risk factor is the essential feature that allows any multi-factor model to price the cross-section of stock returns.",
-      "year": 2024,
-      "venue": "arXiv",
-      "url": "http://arxiv.org/abs/2402.04775v2",
-      "pdf_url": "https://arxiv.org/pdf/2402.04775v2",
-      "doi": null,
-      "source": "arxiv",
-      "citation_count": 0,
-      "summary": "We extract firms' cyber risk with a machine learning algorithm measuring the proximity between their disclosures and a dedicated cyber corpus. Our approach outperforms dictionary methods, uses full disclosure and not devoted-only sections, and generates a cyber risk measure uncorrelated with other firms' characteristics. We find that a portfolio of US-listed stocks in the high cyber risk quantile generates an excess return of 18.72% p.a.",
-      "key_findings": [
-        "Our approach outperforms dictionary methods, uses full disclosure and not devoted-only sections, and generates a cyber risk measure uncorrelated with other firms' characteristics.",
-        "We find that a portfolio of US-listed stocks in the high cyber risk quantile generates an excess return of 18.72% p.a.",
-        "Finally, using a Bayesian asset pricing method, we show that our cyber risk factor is the essential feature that allows any multi-factor model to price the cross-section of stock returns."
-      ],
-      "gap": "Findings are tied to the specific data and setting studied; transfer to other contexts is untested."
-    },
-    {
-      "title": "The Cyber Alliance Game: How Alliances Influence Cyber-Warfare",
-      "authors": [
-        "Gergely Benkő",
-        "Gergely Biczók"
-      ],
-      "abstract": "Cyber-warfare has become the norm in current ongoing military conflicts. Over the past decade, numerous examples have shown the extent to which nation-states become vulnerable if they do not focus on building their cyber capacities. Adding to the inherent complexity of cyberwar scenarios, a state is usually a member of one or more alliances. Alliance policies and internal struggles could shape the individual actions of member states; intuitively, this also holds for the cyber domain. In this paper, we define and study a simple Cyber Alliance Game with the objective of understanding the fundamental influence of alliances on cyber conflicts between nation-states. Specifically, we focus on the decision of whether to exploit a newly found vulnerability individually or share it with the alliance. First, we characterize the impact of vulnerability-sharing rewards on the resulting equilibrium. Second, we study the implications of the internal power structure of alliances on cyberwar outcomes and infer the expected behavior of Dictator, Veto, and Dummy players. Finally, we investigate how alliances can nudge their members via rewards and punishments to adhere to their defensive or offensive cyber policy. We believe that our results contribute to the fundamental understanding of real-world cyber-conflicts by characterizing the impact of alliances.",
-      "year": 2024,
-      "venue": "arXiv",
-      "url": "http://arxiv.org/abs/2410.05953v1",
-      "pdf_url": "https://arxiv.org/pdf/2410.05953v1",
-      "doi": null,
-      "source": "arxiv",
-      "citation_count": 0,
-      "summary": "Cyberwarfare has become the norm in current ongoing military conflicts. Over the past decades, numerous examples have shown the extent to which nation-states become vulnerable if they do not focus on building their cyber capacities. Adding to the inherent complexity of cyberwar scenarios, a state is usually a member of one or more alliances. Alliance policies and internal struggles could shape the individual actions of member states; intuitively, this also holds for the cyber domain.",
+      "venue": "Annals of Operations Research",
+      "url": "https://www.semanticscholar.org/paper/d533623132891645b8dbefa7917edf07c228d1fd",
+      "pdf_url": "",
+      "doi": "10.1007/s10479-024-06406-6",
+      "source": "semantic_scholar",
+      "citation_count": 14,
+      "summary": "Ma (2024) offers an analytical treatment of non-cooperative game theory with generative adversarial network for effective decision-making in military cyber warfare, published in Annals of Operations Research. The work centres on non-cooperative and decision-making. Its main limitation is that it makes an argument that has not been tested against empirical data. For research on Cyber Warfare, it contributes a perspective on non-cooperative and theory.",
       "key_findings": [],
       "gap": "Its argument is not tested against empirical data."
     },
     {
-      "title": "A Novel Mutual Insurance Model for Hedging Against Cyber Risks in Power Systems Deploying Smart Technologies",
+      "title": "Russian cyber and information warfare in practice",
+      "authors": [],
+      "abstract": "",
+      "year": 2023,
+      "venue": "",
+      "url": "https://www.semanticscholar.org/paper/2ae7f0c549847f80bb6cc9ce86f32ebea5031749",
+      "pdf_url": "https://chathamhouse.soutron.net/Portal/Public/en-GB/DownloadImageFile.ashx?objectId=7455&ownerType=0&ownerId=203518",
+      "doi": "10.55317/9781784135898",
+      "source": "semantic_scholar",
+      "citation_count": 17,
+      "summary": "Unknown (2023) offers an analytical treatment of russian cyber and information warfare in practice. Its main limitation is that it makes an argument that has not been tested against empirical data. For research on Cyber Warfare, it contributes a perspective on russian and information.",
+      "key_findings": [],
+      "gap": "Its argument is not tested against empirical data."
+    },
+    {
+      "title": "On the insurability of cyber warfare: An investigation into the German cyber insurance market",
       "authors": [
-        "Pikkin Lau",
-        "Lingfeng Wang",
-        "Wei Wei",
-        "Zhaoxi Liu",
-        "Chee-Wooi Ten"
+        "Frank Cremer",
+        "Barry Sheehan",
+        "Martin Mullins",
+        "Michael Fortmann",
+        "Barry J. Ryan",
+        "S. Materne"
       ],
-      "abstract": "In this paper, a novel cyber-insurance model design is proposed based on system risk evaluation with smart technology applications. The cyber insurance policy for power systems is tailored via cyber risk modeling, reliability impact analysis, and insurance premium calculation. A stochastic Epidemic Network Model is developed to evaluate the cyber risk by propagating cyberattacks among graphical vulnerabilities. Smart technologies deployed in risk modeling include smart monitoring and job thread assignment. Smart monitoring boosts the substation availability against cyberattacks with preventive and corrective measures. The job thread assignment solution reduces the execution failures by distributing the control and monitoring tasks to multiple threads. Reliability assessment is deployed to estimate load losses convertible to monetary losses. These monetary losses would be shared through a mutual insurance plan. To ensure a fair distribution of indemnity, a new Shapley mutual insurance principle is devised. Effectiveness of the proposed Shapley mutual insurance design is validated via case studies. The Shapley premium is compared with existent premium designs. It is shown that the Shapley premium has high indemnity levels closer to those of Tail Conditional Expectation premium. Meanwhile, the Shapley premium is nearly as affordable as the coalitional premium and keeps a relatively low insolvency probability.",
+      "abstract": "",
       "year": 2024,
-      "venue": "arXiv",
-      "url": "http://arxiv.org/abs/2403.11054v1",
-      "pdf_url": "https://arxiv.org/pdf/2403.11054v1",
-      "doi": "10.1109/TPWRS.2022.3164628",
-      "source": "arxiv",
-      "citation_count": 0,
-      "summary": "Key finding #1: The proposed cyber-insuraNCe model design is tailored based on system risk evaluation with smart technology applications. It includes a novel cyber risk modeling approach to evaluate the cyber risks, reliability impact analysis, and insuraNCe premium calculation for power systems. Key finding #2: The proposed Shapley mutual insuraNCe principle is validated via case studies with a new Shapley mutual insuraNCe design that has high indemnity levels closer to those of TaiL Conditional Expectation (TCE) premium. It also keeps a relatively low insolvency probability while maintaining a fair distribution of indemnities.",
+      "venue": "Computers & security",
+      "url": "https://www.semanticscholar.org/paper/d05fd085bb7f02a6147d23f1c9a197406d21a23f",
+      "pdf_url": "https://doi.org/10.1016/j.cose.2024.103886",
+      "doi": "10.1016/j.cose.2024.103886",
+      "source": "semantic_scholar",
+      "citation_count": 13,
+      "summary": "Cremer (2024) offers an analytical treatment of the insurability of cyber warfare, published in Computers & security. The work centres on investigation, german, insurance and market. Its main limitation is that it makes an argument that has not been tested against empirical data. For research on Cyber Warfare, it contributes a perspective on insurability and investigation.",
       "key_findings": [],
-      "gap": "The paper leaves unaddressed the question on how to ensure a fair distribution of indemnities, which is crucial for power system owners."
+      "gap": "Its argument is not tested against empirical data."
     },
     {
-      "title": "Towards Automated Cyber Range Design: Characterizing and Matching Demands to Supplies",
+      "title": "Stuxnet revisited: From cyber warfare to secret statecraft",
       "authors": [
-        "Ekzhin Ear",
-        "Jose L. C. Remy",
-        "Shouhuai Xu"
+        "J. Lindsay"
       ],
-      "abstract": "Cyber ranges mimic real-world cyber environments and are in high demand. Before building their own cyber ranges, organizations need to deeply understand what construction supplies are available to them. A fundamental supply is the cyber range architecture, which prompts an important research question: Which cyber range architecture is most appropriate for an organization's requirements? To answer this question, we propose an innovative framework to specify cyber range requirements, characterize cyber range architectures (based on our analysis of 45 cyber range architectures), and match cyber range architectures to cyber range requirements.",
-      "year": 2023,
-      "venue": "arXiv",
-      "url": "http://arxiv.org/abs/2307.04416v1",
-      "pdf_url": "https://arxiv.org/pdf/2307.04416v1",
-      "doi": "10.1109/CSR57506.2023.10224940",
-      "source": "arxiv",
-      "citation_count": 0,
-      "summary": "C. Remy, Shouhuai Xu Abstract - Cyber ranges are emerging technologies that can aptly leverage dynamic and informative interactions between attackers and defenders in cyberspace to create real-world cyber environments. However, organizations across many industry sectors have increased their technical and cybersecurity footprint, leading to a lack of scientific rigor in designing cyber ranges. This paper advocates studying cyber ranges with scientific rigor by treating them as new kinds of security instruments and proposes three research questions to guide the design process.",
+      "abstract": "ABSTRACT The Stuxnet attack on Iran’s nuclear program is an outlier in the history of cyber conflict. While espionage and subversion are prevalent, serious cyber-physical damage remains rare. Stuxnet has thus had an outsized influence on debates about cyber warfare, for visionaries and skeptics alike. This seminal case deserves a second look in light of more recent evidence and the evolving literature on cybersecurity. Rather than a precious incident of cyber warfare, Stuxnet can be better understood as a tool of covert diplomacy. Indeed, Stuxnet illustrates key features of secret statecraft such as indefinite duration, institutional subversion, clandestine organization, and escalation management.",
+      "year": 2025,
+      "venue": "The  Journal of Strategic Studies",
+      "url": "https://www.semanticscholar.org/paper/ff7134a42d42564dcf54b780070416ec2ac66214",
+      "pdf_url": "",
+      "doi": "10.1080/01402390.2025.2481447",
+      "source": "semantic_scholar",
+      "citation_count": 9,
+      "summary": "The Stuxnet attack on Iran's nuclear program is an outlier in the history of cyber conflict. While espionage and subversion are common, serious physical damage remains rare. Stuxnet has had a significant influence on debates about cyber warfare, for visionaries and skeptics alike. This semi-case deserves a second look in light of more recent evidence and the evolving literature on cybersecurity.",
       "key_findings": [],
-      "gap": "The proposed framework has not been validated empirically."
+      "gap": "While espionage and subversion are prevalent, serious cyber-physical damage remains rare."
     },
     {
-      "title": "Turnkey Technology: A Powerful Tool for Cyber Warfare",
+      "title": "Cyber warfare: a study of Zelenskyy’s social media political performance strategies and effects",
       "authors": [
-        "MA. Bouke",
-        "A. Abdullah"
+        "Liqiang Wang",
+        "Ruo-Xi Wang"
       ],
-      "abstract": "Turnkey technology has emerged as a game-changing tool in cyber warfare, offering state and non-state actors unprecedented access to advanced cyber capabilities. The advantages of turnkey technology include rapid deployment and adaptability, lower costs and resource requirements, the democratization of cyber warfare capabilities, and enhanced offensive and defensive strategies. However, turnkey technology also introduces significant risks, such as the proliferation of cyber weapons, ethical considerations, potential collateral damage, escalation of conflicts, and legal ramifications. This paper provides a unique perspective on the implications of turnkey technology in cyber warfare, highlighting its advantages, risks, and challenges, as well as the potential strategies for mitigating these concerns. The research's novelty lies in examining real-world examples and proposing a multifaceted approach to address the challenges associated with turnkey technology in cyber warfare. This approach focuses on developing effective cybersecurity measures, establishing international norms and regulations, promoting responsible use and development of turnkey technology, and enhancing global cooperation on cyber warfare issues. By adopting this accountable and balanced approach, governments, organizations, and the international community can work together to create a more secure and stable digital environment, leveraging the benefits of turnkey technology while minimizing the associated risks and challenges.",
-      "year": 2023,
-      "venue": "arXiv",
-      "url": "http://arxiv.org/abs/2308.14576v1",
-      "pdf_url": "https://arxiv.org/pdf/2308.14576v1",
-      "doi": null,
-      "source": "arxiv",
-      "citation_count": 0,
-      "summary": "Bouke, A. Abdullah Turnkey technology has emerged as a game-changing tool in cyber warfare, offering state and non-state actors unprecedented access to advanced cyber capabilities. The advantages of turnkey technology include rapid deployment and adaptability, lower costs and resource requirements, the democratization of cyber weapons, and enhancements to offensive and defensive strategies. However, turnkey technology also introduces significant risks such as prolife rationing of cyber weapons, ethical considerations, potential collateral damage, escapability of conflicts, and legal ramifications.",
-      "key_findings": [],
-      "gap": "This paper provides a unique perspective on the implications of turnkey technology in cyber warfare, highlighting its advantages, risks, and challenges, as well as the potential strategies for mitigating these concerns."
-    },
-    {
-      "title": "On Autonomous Agents in a Cyber Defence Environment",
-      "authors": [
-        "Mitchell Kiely",
-        "David Bowman",
-        "Maxwell Standen",
-        "Christopher Moir"
-      ],
-      "abstract": "Autonomous Cyber Defence is required to respond to high-tempo cyber-attacks. To facilitate the research in this challenging area, we explore the utility of the autonomous cyber operation environments presented as part of the Cyber Autonomy Gym for Experimentation (CAGE) Challenges, with a specific focus on CAGE Challenge 2. CAGE Challenge 2 required a defensive Blue agent to defend a network from an attacking Red agent. We provide a detailed description of the this challenge and describe the approaches taken by challenge participants. From the submitted agents, we identify four classes of algorithms, namely, Single- Agent Deep Reinforcement Learning (DRL), Hierarchical DRL, Ensembles, and Non-DRL approaches. Of these classes, we found that the hierarchical DRL approach was the most capable of learning an effective cyber defensive strategy. Our analysis of the agent policies identified that different algorithms within the same class produced diverse strategies and that the strategy used by the defensive Blue agent varied depending on the strategy used by the offensive Red agent. We conclude that DRL algorithms are a suitable candidate for autonomous cyber defence applications.",
-      "year": 2023,
-      "venue": "arXiv",
-      "url": "http://arxiv.org/abs/2309.07388v1",
-      "pdf_url": "https://arxiv.org/pdf/2309.07388v1",
-      "doi": null,
-      "source": "arxiv",
-      "citation_count": 0,
-      "summary": "Challenge: The Cyber Autonomy Gym for Experiments (CAGE) Challenges require autonomous cyber operations environments as part of the Cyber Autonomity Gym for Experimentation (CAGE). This paper explores the utility of autonomous cyber operation environments presented as part of CAGE challenges, with a focus on CAGE Challenge 2. The four classes of algorithm identified are hierarchical DRL approaches, hierarchical DRL approaches, ensembles, and non-DRL approaches. The strategies used by the defensive Blue agent varied depending on the strategy used by the offensive Red agent.",
-      "key_findings": [],
-      "gap": "CAGE Challenge 2 required a defensive Blue agent to defend a network from an attacking Red agent."
-    },
-    {
-      "title": "Towards Autonomous Cyber Operation Agents: Exploring the Red Case",
-      "authors": [
-        "Li Li",
-        "Jean-Pierre S. El Rami",
-        "Ryan Kerr",
-        "Adrian Taylor",
-        "Grant Vandenberghe"
-      ],
-      "abstract": "Recently, reinforcement and deep reinforcement learning (RL/DRL) have been applied to develop autonomous agents for cyber network operations(CyOps), where the agents are trained in a representative environment using RL and particularly DRL algorithms. The training environment must simulate CyOps with high fidelity, which the agent aims to learn and accomplish. A good simulator is hard to achieve due to the extreme complexity of the cyber environment. The trained agent must also be generalizable to network variations because operational cyber networks change constantly. The red agent case is taken to discuss these two issues in this work. We elaborate on their essential requirements and potential solution options, illustrated by some preliminary experimentations in a Cyber Gym for Intelligent Learning (CyGIL) testbed.",
-      "year": 2023,
-      "venue": "arXiv",
-      "url": "http://arxiv.org/abs/2309.02247v2",
-      "pdf_url": "https://arxiv.org/pdf/2309.02247v2",
-      "doi": null,
-      "source": "arxiv",
-      "citation_count": 0,
-      "summary": "El Rami, Ryan Kerry, Adrián Taylor, and Grant Van den Berghe Recently, reinforcement and deep reinforcement learning (RL/DRL) have been applied to develop autonomous agents for cyber network operations (CyOps), where the agents are trained in a representative environment using RL and particularly DRL algorithm. The training environment must simulate CyOps with high fideli- ty, which the agent aimed to learn and accomplish. A good simulator is hard to achieve due to the extreme complexity of the cyber environment. The red agent case is taken to discuss these two issues in this work.",
+      "abstract": "During the Russia-Ukraine war, Ukrainian President Volodymyr Zelenskyy has strategically used social media to appeal for international support. This reflects a broader trend of political figures relying on digital platforms to shape public opinion and influence global narratives during crises. This work uses three main analysis methods, content, sentiment and social network analysis. The searched and collected dataset consists 604 valid tweets and 58,100 corresponding comments. The findings show that Zelenskyy employs both textual and visual narratives to construct a war-related agenda, influencing international public discourse. His agenda-setting is most effective in the early stages of the conflict but weakens over time. This study highlights Zelenskyy’s flexibility and adaptability in his media strategy, illustrating the evolving nature of political performance in a globalized media landscape. To maintain effective communication and image-building, leaders must balance audience psychology with the characteristics of digital media.",
+      "year": 2024,
+      "venue": "Frontiers in Psychology",
+      "url": "https://www.semanticscholar.org/paper/ccd5ed8b787811326e716a8df249882129e5f123",
+      "pdf_url": "https://www.frontiersin.org/journals/psychology/articles/10.3389/fpsyg.2024.1478639/pdf",
+      "doi": "10.3389/fpsyg.2024.1478639",
+      "source": "semantic_scholar",
+      "citation_count": 10,
+      "summary": "During the Russia-Ukraine war, Ukrainian President Volodymyr Zelenskyy has strategically used social media to appeal for international support. This reflects a broad range of political figures relying on digital platforms to shape public opinion and influence global narratives during crises. The study analyzes three main analyze methods: content, sentiment, and social network analyziS. The dataset consists of 604 valid tweets and 58,100 corresponding comments.",
       "key_findings": [],
       "gap": "Findings are tied to the specific data and setting studied; transfer to other contexts is untested."
+    },
+    {
+      "title": "Understanding the Threat Posed by Chinese Cyber Warfare Units",
+      "authors": [
+        "Nachaat Mohamed",
+        "Saif khameis Almazrouei",
+        "Adel Oubelaid",
+        "A. Ahmed",
+        "O. Jomah",
+        "Alghannai Aghnaiya"
+      ],
+      "abstract": "The emergence of China as a global superpower has presented numerous challenges, among which is the growing threat posed by Chinese cyber warfare units. Operating under the People's Liberation Army (PLA), these units have been implicated in various high-profile cyber-attacks targeting both civilian and military entities worldwide. This paper endeavors to offer a comprehensive analysis of the risks presented by Chinese cyber warfare units, encompassing their organizational structure, tactics, and capabilities. By elucidating the nature and extent of this menace, we hope to enable governments and organizations to implement measures for better protection against Chinese cyber-attacks, as 80% of them target government bodies. In this study, we utilize the MITRE ATT&CK framework as a foundation to deliver an accessible, informative overview.",
+      "year": 2023,
+      "venue": "2023 IEEE 3rd International Maghreb Meeting of the Conference on Sciences and Techniques of Automatic Control and Computer Engineering (MI-STA)",
+      "url": "https://www.semanticscholar.org/paper/9c08cda3b75ec7f283276566f98e62e51fa1f295",
+      "pdf_url": "https://doi.org/10.1109/MI-STA57575.2023.10169496",
+      "doi": "10.1109/MI-STA57575.2023.10169496",
+      "source": "semantic_scholar",
+      "citation_count": 11,
+      "summary": "Ahmed, O. Jooma (2023) The emergence of China as a global superpower has presented numerous challenges, among which is the growing threat pose by Chinese cyber warfare units. Operating under the People's Liberation Army (PLAs), these units have been implanted in various high-profile cyber-attacks targeting both civilian and military entities worldwide. The study aims to offer an overview of the nature, extent, and menace posed by Chinese cyber warfare units, utilizing the MITRE ATT&CK framework as a foundation.",
+      "key_findings": [],
+      "gap": "The emergence of China as a global superpower has presented numerous challenges, among which is the growing threat posed by Chinese cyber warfare units."
+    },
+    {
+      "title": "Advanced Persistent Threats in Cybersecurity – Cyber Warfare",
+      "authors": [
+        "Nicolae Sfetcu"
+      ],
+      "abstract": "This book aims to provide a comprehensive analysis of Advanced Persistent Threats (APTs), including their characteristics, origins, methods, consequences, and defense strategies, with a focus on detecting these threats. It explores the concept of advanced persistent threats in the context of cyber security and cyber warfare. APTs represent one of the most insidious and challenging forms of cyber threats, characterized by their sophistication, persistence, and targeted nature. The paper examines the origins, characteristics and methods used by APT actors. It also explores the complexities associated with APT detection, analyzing the evolving tactics used by threat actors and the corresponding advances in detection methodologies. It highlights the importance of a multi-faceted approach that integrates technological innovations with proactive defense strategies to effectively identify and mitigate APT.",
+      "year": 2024,
+      "venue": "Social Science Research Network",
+      "url": "https://www.semanticscholar.org/paper/d230397e93ef8605be918279b059ef7419d31033",
+      "pdf_url": "https://philpapers.org/archive/SFEAPT.pdf",
+      "doi": "10.58679/mm28378",
+      "source": "semantic_scholar",
+      "citation_count": 8,
+      "summary": "Paedigree: This book aims to provide an analysis of advanced persistent threats (APTs), including their characteristics, origins, methods, consequences, and defeating strategies with a focus on detecting these threat actors. It explores the concept of APTs in the context of cyber security and cyber warfare. The paper examines the originations, characteristics, and methods used by APT actors, as well as their evolving tactics and advanced detection methodologies. It highlights the importance of a multi-faceted approach that integrates technological innovations with proactive defense strategies to effectively identify and mitigate APT threats.",
+      "key_findings": [],
+      "gap": "Its argument is not tested against empirical data."
+    },
+    {
+      "title": "Cyber Warfare and International Security: A New Geopolitical Frontier",
+      "authors": [
+        "Z. Khan"
+      ],
+      "abstract": "Cyber warfare has become a major geopolitical frontier, fundamentally changing the international security landscape. This article explores the evolving nature of cyber warfare and its implications for geopolitics, national security, and global strategic stability. Unlike conventional warfare, cyber conflict takes place in an invisible, borderless digital space, allowing state and non-state actors to engage in destructive activities with relative anonymity. The asymmetric nature of cyber warfare challenges traditional power dynamics, allowing smaller powers to challenge technologically superior states. This study examines key aspects of cyber warfare, including cyber espionage, sabotage, and influence operations, and highlights their role in undermining national security and economic stability. The analysis includes case studies of major geopolitical rivalries, such as the cyber competition between the United States and China and the cyber conflict between Russia and Ukraine, to demonstrate the strategic dimensions of cyber operations. In addition, the study examines the emergence of cyber sovereignty and the complex challenges posed by cyber threats to critical infrastructure sectors, such as energy, telecommunications, and the financial system. In addition, the paper examines the underlying theoretical frameworks of cyber warfare, the hybrid nature of modern conflicts, and international efforts to establish cyber arms control mechanisms. As cyber threats continue to evolve, the study highlights the need for comprehensive policy responses to address emerging security vulnerabilities. Ultimately, this study contributes to a deeper understanding of the role of cyber warfare in shaping contemporary geopolitical interactions and the urgent need for robust cybersecurity measures to protect national and global interests in the digital age.",
+      "year": 2025,
+      "venue": "The Critical Review of Social Sciences Studies",
+      "url": "https://www.semanticscholar.org/paper/9d808034850c43858ea54214f6cf3e01594acc1b",
+      "pdf_url": "https://thecrsss.com/index.php/Journal/article/download/461/508",
+      "doi": "10.59075/k9cbhz04",
+      "source": "semantic_scholar",
+      "citation_count": 5,
+      "summary": "Cyber Warfare and International Security: A New Geopolitical Frontier Khan Abstract This study analyzes key aspects of cyber warfare, including cyber espionage, sabotage, and influence operations, and highlights their role in undermining national security and economic stability. The analysis includes case studies of major geopolitical rivalries such as the cyber competition between the United States and China and the cyber conflict between Russia and Ukraine. The study also examines emerging strategic dimensions of cyber operations, including critical infrastructure sectors, energy, telecommunications, and financial systems. Additionally, this study identifies the underlying theoretical frameworks for cyber warfare, highlights potential policy responses to address evolving security vulnerabilities, and underscores the need for robust cybersecurity measures in contemporary geopolitical interactions.",
+      "key_findings": [],
+      "gap": "The asymmetric nature of cyber warfare challenges traditional power dynamics, allowing smaller powers to challenge technologically superior states."
+    },
+    {
+      "title": "Waging warfare against states: the deployment of artificial intelligence in cyber espionage",
+      "authors": [
+        "W. Rosli"
+      ],
+      "abstract": "Cyber espionage has significantly been viewed as a risk towards nation-states, especially in the area of security and protection of Critical National Infrastructures. The race against digitisation has also raised concerns about how emerging technologies are defining how cyber activities are linked to waging warfare between States. Real-world crimes have since found a place in cyberspace, and with high connectivity, has exposed various actors to various risks and vulnerabilities, including cyber espionage. Cyber espionage has always been a national security issue as it does not only target States but also affects public–private networks, corporations and individuals. The challenge of crimes committed within the cyber realm is how the nature of cybercrimes distorts the dichotomy of state responsibility in responding to cyber threats and vulnerabilities. Furthermore, the veil of anonymity and emerging technologies such as artificial intelligence have further provided opportunities for a larger scale impact on the state for such crime. The imminent threat of cyber espionage is impacting the economic and political interactions between nation-states and changing the nature of modern conflict. Due to these implications, this paper will discuss the current legal landscape governing cyber espionage and the impact of the use of artificial intelligence in the commission of such crimes.",
+      "year": 2025,
+      "venue": "AI and Ethics",
+      "url": "https://www.semanticscholar.org/paper/586f6cd3f41eb04fc3bbf412f5eca2eea05f77c0",
+      "pdf_url": "https://link.springer.com/content/pdf/10.1007/s43681-024-00628-x.pdf",
+      "doi": "10.1007/s43681-024-00628-x",
+      "source": "semantic_scholar",
+      "citation_count": 5,
+      "summary": "Cyber espionage has been defined as a type of cyber warfare that includes disruption, surveillance, damage, and deletion of information. With the race towards digitalisation and emerging technologies such as artificial intelligence (AI), cyber espionage is now viewed to be an integral part of modern conflict. Real-world crimees have been observed in this area and have exposed various actors to various risks and vulnerabilities, including cyber espionage. Cyber espionage has a significant impact on public–private networks, corporations and individuals, raising concerns about how emerging technologies are defining the nature of modern conflict.",
+      "key_findings": [],
+      "gap": "The challenge of crimes committed within the cyber realm is how the nature of cybercrimes distorts the dichotomy of state responsibility in responding to cyber threats and vulnerabilities."
+    },
+    {
+      "title": "Cyber Warfare Strategies in the Russia-Ukraine Conflict (2021-2022): Implications for National Security and Modern Warfare",
+      "authors": [
+        "Khoirunnisa Khoirunnisa",
+        "Cristy Sugiati"
+      ],
+      "abstract": "This study examines the cyber warfare strategies employed during the 2021-2022 conflict between Russia and Ukraine, focusing on how technological developments in information and communication have influenced this aspect of modern warfare. The conflict escalated as Russia viewed Ukraine's desire to join NATO as a significant threat, leading to a mix of military and non-military strategies, including extensive cyber attacks. Using a descriptive qualitative method, this research analyzes the cyber warfare strategies through the lens of state security, national interest, and cyber security theories. The findings highlight that both Russia and Ukraine utilized Distributed Denial of Service (DDoS) attacks and hacker groups to damage and disable governmental systems, aiming to disrupt communication and weaken the opponent with minimal costs. Russia's advanced cyber capabilities made Ukraine a vulnerable target, resulting in widespread cyber assaults impacting both civilian and governmental infrastructures. The study concludes that cyber warfare has emerged as a pivotal strategy in modern conflicts, with effects comparable to traditional military tactics. The Russia-Ukraine conflict underscores how cyber strategies can be used to achieve national interests and demonstrates the growing importance of cyber security in contemporary warfare. This conflict also serves as a warning to other nations regarding the vulnerabilities in their cyber defenses.",
+      "year": 2024,
+      "venue": "Journal of Public Policy",
+      "url": "https://www.semanticscholar.org/paper/d96d11ffc5965fd6be60547db56d82624451bf19",
+      "pdf_url": "http://jurnal.utu.ac.id/jppolicy/article/download/9026/pdf",
+      "doi": "10.35308/jpp.v10i2.9026",
+      "source": "semantic_scholar",
+      "citation_count": 6,
+      "summary": "The Cyber Warfare Strategies Employed During the Russia-Ukraine Conflict (2021-2022): Implications for National Security and Modern Warfare This study examines the cyber warfare strategies employed during the 2021-2022 conflict between Russia and Ukraine, focusing on how technological development in information and communication have influenced this aspect of modern warfare. The conflict escalated as Russia viewed Ukraine's desire to join NATO as a significant threat leading to extensive cyber attacks. Using a qualitative method, the study analyzes the cyber warfare strategies through the lens of state security, national interest, and cybersecurity theories. The findings highlight that both Russia and Ukraine utilized Distributed Denial of Service (DDoS) attacks and hacking groups to damage and disable governmental systems resulting in wide-spread predatory attacks on both civilian and governmental infrastructure.",
+      "key_findings": [
+        "Cyber Warfare Strategies Employed during Russia-Ukraine Conflict (2021-2022): Implications for National Security and Modern Warfare"
+      ],
+      "gap": "Its argument is not tested against empirical data."
+    },
+    {
+      "title": "Agent-vs-Agent Cyber Warfare: Autonomous AI Systems Defending Against AI-Enabled APTs",
+      "authors": [
+        "Salman Arafath Mohammed"
+      ],
+      "abstract": "The cyber-security ecosystem is evolving very fast, with Artificial Intelligence (AI) giving rise to both highly defensive and more sophisticated forms of Advanced Persistent Threats (APTs). AI-powered APTs are a new breed of intelligent, adaptive and self-learning cyber attackers that can autonomously use vulnerabilities, evade detection and continue operating within networks. Organizations in their turn are moving towards the shift between stationary, rule-based control and fully autonomous defensive agents able to conduct continuous monitoring, predict the threat, interrupt the attack real-time, and actively respond. It is this paper that examines the new paradigm of Agent-vs-Agent Cyber Warfare, where autonomous AI defenses indirectly respond to AI-driven APTs on dynamic digital platforms. We describe the architecture of the offensive APT agents based on AI, analyze defensive multi-agent systems (MAS), and suggest a proactive cyber-battlefield model, based on reinforcement learning (RL), large language models (LLM), and self-evolving threat intelligence. Lastly, we outline constraints, ethical aspects, and the way forward with regard to obtaining digital ecosystems in an era of autonomous cyber warfare.",
+      "year": 2025,
+      "venue": "International Journal on Advanced Computer Engineering and Communication Technology",
+      "url": "https://www.semanticscholar.org/paper/1a9602d90b23ab9bb1b4b8a28b9549ac9087263a",
+      "pdf_url": "",
+      "doi": "10.65521/ijacect.v14i2.926",
+      "source": "semantic_scholar",
+      "citation_count": 4,
+      "summary": "Mohammed (2025) offers an analytical treatment of Agent-vs-Agent cyber warfare, published in International Journal on Advanced Computer Engineering and Communication Technology. It is the study that examines the new paradigm of Agent-vs-Agent Cyber Warfare, where autonomous AI defenses indirectly respond to AI-driven APTs on dynamic digital platforms. Its main limitation is that it makes an argument that has not been tested against empirical data. For research on Cyber Warfare, it contributes a perspective on autonomous and defensive.",
+      "key_findings": [
+        "The authors describe the architecture of the offensive APT agents based on AI, analyze defensive multi-agent systems (MAS), and suggest a proactive cyber-battlefield model, based on reinforcement learning (RL), large language models (LLM), and self-evolving threat intelligence."
+      ],
+      "gap": "Its argument is not tested against empirical data."
+    },
+    {
+      "title": "Strategic studies and cyber warfare",
+      "authors": [
+        "Samuel Žilinčík",
+        "I.G.B.M. Duyvesteyn"
+      ],
+      "abstract": "ABSTRACT This article explores the fashion/popularity of the idea that the exercise of cyber power is a form of warfare. Specifically, the article explains the recent decline of the cyber warfare fashion in academia and discusses its implications for strategic studies. To achieve this, we synthesize observations from previous studies with new quantitative and qualitative data. The article contributes to a growing body of literature by tracing and explaining the history of a particular theme within strategic studies.",
+      "year": 2023,
+      "venue": "The  Journal of Strategic Studies",
+      "url": "https://www.semanticscholar.org/paper/f391665536ae0081fe31a2b508b105de1de225fe",
+      "pdf_url": "https://scholarlypublications.universiteitleiden.nl/download/1887/3564476/1?col=81522199580002711",
+      "doi": "10.1080/01402390.2023.2174106",
+      "source": "semantic_scholar",
+      "citation_count": 7,
+      "summary": "ABSTRACT the study explore the fashion/popularity of the idea that the exercise of cyber power is a form of warfare. Specifically, the author explains the recent decline of the cyber warfare fashion in academia and discusses its implementation for strategic studies. To achieve this, the authors synthesize observations from previous studies with new quantitative and qualiatave data. The article contribute to a growing body of literature by tracing and explaining the history of a particular theme within strategic studies.",
+      "key_findings": [
+        "Cyber power has become an increasingly important concept in modern strategy and policy, but research on this topic is fragmented across communities.",
+        "The paper's methodology is grounded in the existing literature on cyber power, which often focuses on its military applications rather than other forms of influence or coercion.",
+        "While there has been some progress in recent years towards incorporation cyber power into strategic studies research, the authors caution that the study remains unevenly distributed among different communities within the field.",
+        "The paper's main contribution is to identify a gap in the existing literature on Cyber Warfare by highlighting the importance of addressing questions related to the concept and implementation of cyber power for strategic studies."
+      ],
+      "gap": "Its argument is not tested against empirical data."
     }
   ]
 }
