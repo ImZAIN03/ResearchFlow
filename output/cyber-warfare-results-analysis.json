@@ -1,0 +1,511 @@
+{
+  "version": 1,
+  "topic": "Cyber Warfare",
+  "review": "output\\cyber-warfare.researchflow.json",
+  "review_type": "narrative review",
+  "papers_analysed": 15,
+  "field": {
+    "tradition": "engineering",
+    "tradition_name": "Engineering, computing and the natural sciences"
+  },
+  "design": {
+    "key": "mixed-methods",
+    "label": "Mixed-methods design",
+    "approach": "Mixed methods",
+    "strands": [
+      "computational-experiment",
+      "case-study"
+    ],
+    "from_phase2": true
+  },
+  "studies": [
+    {
+      "citation": "Yang et al. (2025)",
+      "title": "Toward a Multi-Echelon Cyber Warfare Theory: A Meta-Game-Theoretic Paradigm for Defense and Dominance",
+      "design": "Conceptual / theoretical analysis",
+      "result_type": "Conceptual / argument",
+      "samples": [],
+      "populations": [],
+      "countries": [],
+      "findings": [
+        {
+          "text": "The chapter concludes with directions for future research on resilience, cros-echelon planning, and the evolving role of AI in cyber warfare.",
+          "origin": "abstract",
+          "direction": "neutral"
+        }
+      ],
+      "statistics": [],
+      "field_statements": [],
+      "limitations": [
+        {
+          "text": "The proposed framework has not been validated empirically.",
+          "origin": "summary",
+          "direction": "qualifies"
+        }
+      ],
+      "confidence": "Low",
+      "confidence_reason": "conceptual / theoretical analysis: no new data were collected"
+    },
+    {
+      "citation": "Diggelen et al. (2025)",
+      "title": "Designing AI-Enabled Countermeasures to Cognitive Warfare",
+      "design": "Conceptual / theoretical analysis",
+      "result_type": "Conceptual / argument",
+      "samples": [],
+      "populations": [],
+      "countries": [],
+      "findings": [
+        {
+          "text": "Foreign information operations on social media platforms pose significant risks to democratic societies.",
+          "origin": "abstract",
+          "direction": "neutral"
+        }
+      ],
+      "statistics": [],
+      "field_statements": [],
+      "limitations": [
+        {
+          "text": "Its argument is not tested against empirical data.",
+          "origin": "summary",
+          "direction": "qualifies"
+        }
+      ],
+      "confidence": "Low",
+      "confidence_reason": "conceptual / theoretical analysis: no new data were collected"
+    },
+    {
+      "citation": "Sánchez et al. (2025)",
+      "title": "A Global Analysis of Cyber Threats to the Energy Sector: \"Currents of Conflict\" from a Geopolitical Perspective",
+      "design": "Computational experiment (benchmark evaluation)",
+      "result_type": "Quantitative",
+      "samples": [],
+      "populations": [],
+      "countries": [],
+      "findings": [
+        {
+          "text": "This analysis yields new insights, providing actionable information to researchers, policy makers, and cybersecurity professionals.",
+          "origin": "abstract",
+          "direction": "neutral"
+        }
+      ],
+      "statistics": [],
+      "field_statements": [],
+      "limitations": [
+        {
+          "text": "Findings are tied to the specific data and setting studied; transfer to other contexts is untested.",
+          "origin": "summary",
+          "direction": "qualifies"
+        }
+      ],
+      "confidence": "Low",
+      "confidence_reason": "the abstract states neither a sample nor statistics"
+    },
+    {
+      "citation": "Yang et al. (2025)",
+      "title": "A Multi-Resolution Dynamic Game Framework for Cross-Echelon Decision-Making in Cyber Warfare",
+      "design": "Case study",
+      "result_type": "Qualitative",
+      "samples": [],
+      "populations": [
+        "governments and states"
+      ],
+      "countries": [],
+      "findings": [
+        {
+          "text": "A case study demonstrates how the framework works and its effectiveness in improving the defender's strategic advantage.",
+          "origin": "summary",
+          "direction": "supports"
+        }
+      ],
+      "statistics": [],
+      "field_statements": [],
+      "limitations": [
+        {
+          "text": "Modeling these interactions at different echelons remains challenging due to the dynamic, large-scale, and interdependent nature of cyber environments.",
+          "origin": "summary",
+          "direction": "qualifies"
+        }
+      ],
+      "confidence": "Low",
+      "confidence_reason": "the abstract states neither a sample nor statistics"
+    },
+    {
+      "citation": "Ahmed et al. (2024)",
+      "title": "Cyber Protection Applications of Quantum Computing: A Review",
+      "design": "Systematic / scoping review",
+      "result_type": "Synthesis of prior studies",
+      "samples": [
+        {
+          "count": 815,
+          "unit": "papers",
+          "group": "cases and documents",
+          "text": "815 papers"
+        }
+      ],
+      "populations": [],
+      "countries": [],
+      "findings": [
+        {
+          "text": "In each of these areas, there is significant scope for quantum computing to be implemented and to revolutionize the working environment.",
+          "origin": "abstract",
+          "direction": "neutral"
+        }
+      ],
+      "statistics": [],
+      "field_statements": [],
+      "limitations": [
+        {
+          "text": "Existing cyber protection applications are working well, but there are still challenges and vulnerabilities in computer networks.",
+          "origin": "summary",
+          "direction": "qualifies"
+        }
+      ],
+      "confidence": "Medium",
+      "confidence_reason": "a systematic synthesis of earlier studies, with no new data"
+    },
+    {
+      "citation": "Huang et al. (2024)",
+      "title": "Security Modelling for Cyber-Physical Systems: A Systematic Literature Review",
+      "design": "Systematic / scoping review",
+      "result_type": "Synthesis of prior studies",
+      "samples": [
+        {
+          "count": 449,
+          "unit": "papers",
+          "group": "cases and documents",
+          "text": "449 papers"
+        }
+      ],
+      "populations": [],
+      "countries": [],
+      "findings": [
+        {
+          "text": "This paper also highlights several limitations in existing research, wherein security models adopt simplistic approaches that do not adequately consider the dynamic, multi-layer, multi-path, and multi-agent characteristics of real-world cyber-physical attacks.",
+          "origin": "abstract",
+          "direction": "qualifies"
+        }
+      ],
+      "statistics": [],
+      "field_statements": [],
+      "limitations": [
+        {
+          "text": "Synthesizes earlier work without contributing new evidence of its own.",
+          "origin": "summary",
+          "direction": "qualifies"
+        }
+      ],
+      "confidence": "Medium",
+      "confidence_reason": "a systematic synthesis of earlier studies, with no new data"
+    },
+    {
+      "citation": "Li et al. (2024)",
+      "title": "Symbiotic Game and Foundation Models for Cyber Deception Operations in Strategic Cyber Warfare",
+      "design": "Conceptual / theoretical analysis",
+      "result_type": "Conceptual / argument",
+      "samples": [],
+      "populations": [],
+      "countries": [],
+      "findings": [
+        {
+          "text": "This chapter concludes with a discussion of the challenges associated with FMs and their application in the domain of cybersecurity.",
+          "origin": "abstract",
+          "direction": "qualifies"
+        }
+      ],
+      "statistics": [],
+      "field_statements": [],
+      "limitations": [
+        {
+          "text": "This chapter concludes with a discussion of the challenges associated with FMs and their application in the domain of cybersecurity.",
+          "origin": "summary",
+          "direction": "qualifies"
+        }
+      ],
+      "confidence": "Low",
+      "confidence_reason": "conceptual / theoretical analysis: no new data were collected"
+    },
+    {
+      "citation": "Fernandes et al. (2024)",
+      "title": "Analysing India's Cyber Warfare Readiness and Developing a Defence Strategy",
+      "design": "Simulation / modelling study",
+      "result_type": "Quantitative",
+      "samples": [],
+      "populations": [],
+      "countries": [
+        "India"
+      ],
+      "findings": [
+        {
+          "text": "The literature review reveals significant shortcomings in India's cyber defence readiness, especially in real-time threat detection and response capabilities.",
+          "origin": "abstract",
+          "direction": "qualifies"
+        }
+      ],
+      "statistics": [],
+      "field_statements": [],
+      "limitations": [
+        {
+          "text": "Synthesizes earlier work without contributing new evidence of its own.",
+          "origin": "summary",
+          "direction": "qualifies"
+        }
+      ],
+      "confidence": "Low",
+      "confidence_reason": "the abstract states neither a sample nor statistics"
+    },
+    {
+      "citation": "Celeny et al. (2024)",
+      "title": "Cyber risk and the cross-section of stock returns",
+      "design": "Computational experiment (benchmark evaluation)",
+      "result_type": "Quantitative",
+      "samples": [],
+      "populations": [],
+      "countries": [],
+      "findings": [
+        {
+          "text": "Our approach outperforms dictionary methods, uses full disclosure and not devoted-only sections, and generates a cyber risk measure uncorrelated with other firms' characteristics.",
+          "origin": "abstract",
+          "direction": "supports"
+        },
+        {
+          "text": "We find that a portfolio of US-listed stocks in the high cyber risk quantile generates an excess return of 18.72% p.a.",
+          "origin": "abstract",
+          "direction": "neutral"
+        },
+        {
+          "text": "Moreover, a long-short cyber risk portfolio has a significant and positive risk premium of 6.93% p.a., robust to all factors' benchmarks.",
+          "origin": "abstract",
+          "direction": "supports"
+        },
+        {
+          "text": "Finally, using a Bayesian asset pricing method, we show that our cyber risk factor is the essential feature that allows any multi-factor model to price the cross-section of stock returns.",
+          "origin": "abstract",
+          "direction": "neutral"
+        }
+      ],
+      "statistics": [
+        {
+          "kind": "percentage",
+          "text": "18.72%",
+          "sentence": "We find that a portfolio of US-listed stocks in the high cyber risk quantile generates an excess return of 18.72% p.a.",
+          "label": "Percentage"
+        },
+        {
+          "kind": "percentage",
+          "text": "6.93%",
+          "sentence": "Moreover, a long-short cyber risk portfolio has a significant and positive risk premium of 6.93% p.a., robust to all factors' benchmarks.",
+          "label": "Percentage"
+        }
+      ],
+      "field_statements": [
+        {
+          "kind": "technical",
+          "label": "Technical results",
+          "sentence": "Our approach outperforms dictionary methods, uses full disclosure and not devoted-only sections, and generates a cyber risk measure uncorrelated with other firms' characteristics."
+        }
+      ],
+      "limitations": [
+        {
+          "text": "Findings are tied to the specific data and setting studied; transfer to other contexts is untested.",
+          "origin": "summary",
+          "direction": "qualifies"
+        }
+      ],
+      "confidence": "Medium",
+      "confidence_reason": "empirical with a stated sample or dataset, but the abstract reports no statistics"
+    },
+    {
+      "citation": "Benkő et al. (2024)",
+      "title": "The Cyber Alliance Game: How Alliances Influence Cyber-Warfare",
+      "design": "Unclear from the abstract",
+      "result_type": "Not clear from the abstract",
+      "samples": [],
+      "populations": [],
+      "countries": [],
+      "findings": [
+        {
+          "text": "We believe that our results contribute to the fundamental understanding of real-world cyber-conflicts by characterizing the impact of alliances.",
+          "origin": "abstract",
+          "direction": "neutral"
+        }
+      ],
+      "statistics": [],
+      "field_statements": [],
+      "limitations": [
+        {
+          "text": "Its argument is not tested against empirical data.",
+          "origin": "summary",
+          "direction": "qualifies"
+        }
+      ],
+      "confidence": "Low",
+      "confidence_reason": "unclear from the abstract: no new data were collected"
+    },
+    {
+      "citation": "Lau et al. (2024)",
+      "title": "A Novel Mutual Insurance Model for Hedging Against Cyber Risks in Power Systems Deploying Smart Technologies",
+      "design": "Case study",
+      "result_type": "Qualitative",
+      "samples": [],
+      "populations": [],
+      "countries": [],
+      "findings": [
+        {
+          "text": "Effectiveness of the proposed Shapley mutual insurance design is validated via case studies.",
+          "origin": "abstract",
+          "direction": "supports"
+        }
+      ],
+      "statistics": [],
+      "field_statements": [],
+      "limitations": [
+        {
+          "text": "The paper leaves unaddressed the question on how to ensure a fair distribution of indemnities, which is crucial for power system owners.",
+          "origin": "summary",
+          "direction": "qualifies"
+        }
+      ],
+      "confidence": "Low",
+      "confidence_reason": "the abstract states neither a sample nor statistics"
+    },
+    {
+      "citation": "Ear et al. (2023)",
+      "title": "Towards Automated Cyber Range Design: Characterizing and Matching Demands to Supplies",
+      "design": "Conceptual / theoretical analysis",
+      "result_type": "Conceptual / argument",
+      "samples": [],
+      "populations": [],
+      "countries": [],
+      "findings": [
+        {
+          "text": "To answer this question, we propose an innovative framework to specify cyber range requirements, characterize cyber range architectures (based on our analysis of 45 cyber range architectures), and match cyber range architectures to cyber range requirements.",
+          "origin": "abstract",
+          "direction": "neutral"
+        }
+      ],
+      "statistics": [],
+      "field_statements": [],
+      "limitations": [
+        {
+          "text": "The proposed framework has not been validated empirically.",
+          "origin": "summary",
+          "direction": "qualifies"
+        }
+      ],
+      "confidence": "Low",
+      "confidence_reason": "conceptual / theoretical analysis: no new data were collected"
+    },
+    {
+      "citation": "Bouke et al. (2023)",
+      "title": "Turnkey Technology: A Powerful Tool for Cyber Warfare",
+      "design": "Unclear from the abstract",
+      "result_type": "Not clear from the abstract",
+      "samples": [],
+      "populations": [],
+      "countries": [],
+      "findings": [
+        {
+          "text": "However, turnkey technology also introduces significant risks, such as the proliferation of cyber weapons, ethical considerations, potential collateral damage, escalation of conflicts, and legal ramifications.",
+          "origin": "abstract",
+          "direction": "neutral"
+        },
+        {
+          "text": "The research's novelty lies in examining real-world examples and proposing a multifaceted approach to address the challenges associated with turnkey technology in cyber warfare.",
+          "origin": "abstract",
+          "direction": "qualifies"
+        }
+      ],
+      "statistics": [],
+      "field_statements": [],
+      "limitations": [
+        {
+          "text": "This paper provides a unique perspective on the implications of turnkey technology in cyber warfare, highlighting its advantages, risks, and challenges, as well as the potential strategies for mitigating these concerns.",
+          "origin": "summary",
+          "direction": "qualifies"
+        }
+      ],
+      "confidence": "Low",
+      "confidence_reason": "unclear from the abstract: no new data were collected"
+    },
+    {
+      "citation": "Kiely et al. (2023)",
+      "title": "On Autonomous Agents in a Cyber Defence Environment",
+      "design": "Unclear from the abstract",
+      "result_type": "Not clear from the abstract",
+      "samples": [],
+      "populations": [],
+      "countries": [],
+      "findings": [
+        {
+          "text": "Of these classes, we found that the hierarchical DRL approach was the most capable of learning an effective cyber defensive strategy.",
+          "origin": "abstract",
+          "direction": "supports"
+        }
+      ],
+      "statistics": [],
+      "field_statements": [],
+      "limitations": [
+        {
+          "text": "CAGE Challenge 2 required a defensive Blue agent to defend a network from an attacking Red agent.",
+          "origin": "summary",
+          "direction": "qualifies"
+        }
+      ],
+      "confidence": "Low",
+      "confidence_reason": "unclear from the abstract: no new data were collected"
+    },
+    {
+      "citation": "Li et al. (2023)",
+      "title": "Towards Autonomous Cyber Operation Agents: Exploring the Red Case",
+      "design": "Simulation / modelling study",
+      "result_type": "Quantitative",
+      "samples": [],
+      "populations": [],
+      "countries": [],
+      "findings": [
+        {
+          "text": "We elaborate on their essential requirements and potential solution options, illustrated by some preliminary experimentations in a Cyber Gym for Intelligent Learning (CyGIL) testbed.",
+          "origin": "abstract",
+          "direction": "neutral"
+        }
+      ],
+      "statistics": [],
+      "field_statements": [],
+      "limitations": [
+        {
+          "text": "Findings are tied to the specific data and setting studied; transfer to other contexts is untested.",
+          "origin": "summary",
+          "direction": "qualifies"
+        }
+      ],
+      "confidence": "Low",
+      "confidence_reason": "the abstract states neither a sample nor statistics"
+    }
+  ],
+  "themes": [
+    {
+      "theme": "challenges associated",
+      "studies": [
+        "Li et al. (2024)",
+        "Bouke et al. (2023)"
+      ],
+      "consistency": "consistent",
+      "confidence": "Low",
+      "evidence": [
+        {
+          "study": "Li et al. (2024)",
+          "text": "This chapter concludes with a discussion of the challenges associated with FMs and their application in the domain of cybersecurity.",
+          "origin": "abstract",
+          "direction": "qualifies"
+        },
+        {
+          "study": "Bouke et al. (2023)",
+          "text": "The research's novelty lies in examining real-world examples and proposing a multifaceted approach to address the challenges associated with turnkey technology in cyber warfare.",
+          "origin": "abstract",
+          "direction": "qualifies"
+        }
+      ]
+    }
+  ],
+  "power_analysis": []
+}

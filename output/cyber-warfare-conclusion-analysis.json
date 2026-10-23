@@ -1,0 +1,272 @@
+{
+  "version": 1,
+  "topic": "Cyber Warfare",
+  "review": "output\\cyber-warfare.researchflow.json",
+  "review_type": "narrative review",
+  "papers_analysed": 15,
+  "field": {
+    "tradition": "engineering",
+    "tradition_name": "Engineering, computing and the natural sciences",
+    "vocabulary_field": "computer science and IT"
+  },
+  "design": {
+    "key": "mixed-methods",
+    "label": "Mixed-methods design",
+    "from_phase2": true
+  },
+  "evidence": {
+    "strength": "limited",
+    "reason": "some studies report samples or statistics, but no finding is firmly replicated",
+    "study_confidence": {
+      "Yang et al. (2025)": "Low",
+      "Diggelen et al. (2025)": "Low",
+      "Sánchez et al. (2025)": "Low",
+      "Ahmed et al. (2024)": "Medium",
+      "Huang et al. (2024)": "Medium",
+      "Li et al. (2024)": "Low",
+      "Fernandes et al. (2024)": "Low",
+      "Celeny et al. (2024)": "Medium",
+      "Benkő et al. (2024)": "Low",
+      "Lau et al. (2024)": "Low",
+      "Ear et al. (2023)": "Low",
+      "Bouke et al. (2023)": "Low",
+      "Kiely et al. (2023)": "Low",
+      "Li et al. (2023)": "Low"
+    },
+    "shared_findings": [
+      {
+        "finding": "challenges associated",
+        "consistency": "consistent",
+        "confidence": "Low",
+        "studies": [
+          "Li et al. (2024)",
+          "Bouke et al. (2023)"
+        ]
+      }
+    ]
+  },
+  "research_gaps": [
+    {
+      "title": "validation beyond the datasets used",
+      "kind": "evidence",
+      "source": "Yang et al. (2025)"
+    },
+    {
+      "title": "limitations the authors acknowledge",
+      "kind": "evidence",
+      "source": "Diggelen et al. (2025)"
+    },
+    {
+      "title": "limited generalisability",
+      "kind": "generalisability",
+      "source": "Sánchez et al. (2025)"
+    },
+    {
+      "title": "untested scalability",
+      "kind": "open",
+      "source": "Yang et al. (2025)"
+    },
+    {
+      "title": "limitations the authors acknowledge",
+      "kind": "open",
+      "source": "Ahmed et al. (2024)"
+    },
+    {
+      "title": "limitations the authors acknowledge",
+      "kind": "evidence",
+      "source": "Huang et al. (2024)"
+    },
+    {
+      "title": "limitations the authors acknowledge",
+      "kind": "open",
+      "source": "Li et al. (2024)"
+    },
+    {
+      "title": "limitations the authors acknowledge",
+      "kind": "evidence",
+      "source": "Fernandes et al. (2024)"
+    },
+    {
+      "title": "limited generalisability",
+      "kind": "generalisability",
+      "source": "Celeny et al. (2024)"
+    },
+    {
+      "title": "limitations the authors acknowledge",
+      "kind": "evidence",
+      "source": "Benkő et al. (2024)"
+    },
+    {
+      "title": "limitations the authors acknowledge",
+      "kind": "open",
+      "source": "Lau et al. (2024)"
+    },
+    {
+      "title": "validation beyond the datasets used",
+      "kind": "evidence",
+      "source": "Ear et al. (2023)"
+    },
+    {
+      "title": "limitations the authors acknowledge",
+      "kind": "open",
+      "source": "Bouke et al. (2023)"
+    },
+    {
+      "title": "limitations the authors acknowledge",
+      "kind": "open",
+      "source": "Kiely et al. (2023)"
+    },
+    {
+      "title": "limited generalisability",
+      "kind": "generalisability",
+      "source": "Li et al. (2023)"
+    }
+  ],
+  "future_directions": [
+    {
+      "category": "Unanswered questions",
+      "title": "Validation beyond the datasets used",
+      "question": "Do the frameworks and arguments put forward for Cyber Warfare hold up when tested against data?",
+      "rationale": "Phase 1 records validation beyond the datasets used as a limitation of Yang et al. (2025).",
+      "next_step": "Turn the proposed frameworks into hypotheses and test them on new, independently collected data",
+      "design": "Pre-registered empirical test",
+      "timeline": "6–18 months",
+      "feasibility": "High",
+      "feasibility_reason": "fits a single study, using the design proposed in Phase 2",
+      "basis": "Phase 1 paper limitations"
+    },
+    {
+      "category": "Unanswered questions",
+      "title": "Limited generalisability",
+      "question": "Which findings on Cyber Warfare hold beyond the settings in which they were first observed?",
+      "rationale": "Phase 1 records limited generalisability as a limitation of Sánchez et al. (2025).",
+      "next_step": "Repeat the strongest study's protocol in at least two new countries, sectors or populations",
+      "design": "Multi-site or cross-national replication",
+      "timeline": "1–2 years",
+      "feasibility": "Medium",
+      "feasibility_reason": "requires partners or data access in each new setting",
+      "basis": "Phase 1 paper limitations"
+    },
+    {
+      "category": "Unanswered questions",
+      "title": "Issues the studies leave open",
+      "question": "Which of the issues the reviewed studies leave open matters most for Cyber Warfare, and can a new study settle it?",
+      "rationale": "Phase 1 records these limitations: untested scalability (Yang et al. (2025)), limitations the authors acknowledge (Ahmed et al. (2024)), limitations the authors acknowledge (Li et al. (2024)), limitations the authors acknowledge (Lau et al. (2024)), limitations the authors acknowledge (Bouke et al. (2023)) and limitations the authors acknowledge (Kiely et al. (2023)).",
+      "next_step": "Design a focused study whose research question addresses this gap directly",
+      "design": "Mixed-methods design, as proposed in Phase 2",
+      "timeline": "1–2 years",
+      "feasibility": "Medium",
+      "feasibility_reason": "depends on access to data on this gap",
+      "basis": "Phase 1 paper limitations"
+    },
+    {
+      "category": "Methodological improvements",
+      "title": "Transparent reporting of effects and samples",
+      "question": "How large are the effects behind the findings on Cyber Warfare, and how precisely are they estimated?",
+      "rationale": "The abstracts of Sánchez et al. (2025), Yang et al. (2025), Fernandes et al. (2024), Celeny et al. (2024), Lau et al. (2024) and Li et al. (2023) give no effect sizes and sample sizes.",
+      "next_step": "Report the size of each improvement over the baselines with its variation across runs, and state the datasets' sizes",
+      "design": "Any empirical design, pre-registered",
+      "timeline": "Built into the next study",
+      "feasibility": "High",
+      "feasibility_reason": "costs little beyond planning",
+      "basis": "Phase 3 evidence gaps"
+    },
+    {
+      "category": "Methodological improvements",
+      "title": "Empirical tests of proposed frameworks",
+      "question": "Do the frameworks and arguments that rest on no new data stand up to testing?",
+      "rationale": "Yang et al. (2025), Diggelen et al. (2025), Ahmed et al. (2024), Huang et al. (2024), Li et al. (2024), Benkő et al. (2024), Ear et al. (2023), Bouke et al. (2023) and Kiely et al. (2023) collected no new data.",
+      "next_step": "Derive testable predictions from each framework and check them against independently collected data",
+      "design": "Hypothesis-testing empirical study",
+      "timeline": "6–18 months",
+      "feasibility": "Medium",
+      "feasibility_reason": "requires operationalising the frameworks first",
+      "basis": "Phase 2 designs"
+    },
+    {
+      "category": "Methodological improvements",
+      "title": "Reproducible evaluation",
+      "question": "Would the conclusions on Cyber Warfare change under the evaluation standards of engineering, computing and the natural sciences?",
+      "rationale": "Phase 2 places the reviewed studies in engineering, computing and the natural sciences, where work is judged above all on reproducibility and fair comparison with baselines.",
+      "next_step": "Report variance over repeated runs, compare against strong baselines on several datasets, run ablations and release the code",
+      "design": "Benchmark study with ablations",
+      "timeline": "3–6 months",
+      "feasibility": "High",
+      "feasibility_reason": "needs compute time rather than new data",
+      "basis": "Phase 2 field"
+    },
+    {
+      "category": "Replication and scaling",
+      "title": "Replication of single-study findings",
+      "question": "Which single-study findings survive an independent replication?",
+      "rationale": "The findings of Sánchez et al. (2025), Yang et al. (2025), Fernandes et al. (2024), Celeny et al. (2024), Lau et al. (2024) and Li et al. (2023) have not been reported by any other reviewed study.",
+      "next_step": "Repeat each study's design and measures on a new sample, reporting the result whatever its direction",
+      "design": "Direct or conceptual replication",
+      "timeline": "6–12 months",
+      "feasibility": "High",
+      "feasibility_reason": "the original protocols define what to do",
+      "basis": "Phase 3 results"
+    },
+    {
+      "category": "Replication and scaling",
+      "title": "Scaling up the evidence on challenges associated",
+      "question": "Does what is known about challenges associated hold at larger scale and in other settings?",
+      "rationale": "The evidence so far comes from India.",
+      "next_step": "Evaluate challenges associated at realistic scale: larger datasets, real deployment conditions and the hardware it would run on, reporting cost and latency as well as accuracy",
+      "design": "Scaled evaluation or field deployment",
+      "timeline": "6–18 months",
+      "feasibility": "Medium",
+      "feasibility_reason": "depends on compute and on partners for real deployments",
+      "basis": "Phases 2 and 3"
+    },
+    {
+      "category": "Interdisciplinary approaches",
+      "title": "Collaboration with the social sciences and human-computer interaction",
+      "question": "What would the social sciences and human-computer interaction add to research on Cyber Warfare?",
+      "rationale": "The reviewed studies work within engineering, computing and the natural sciences; the social sciences and human-computer interaction would add a perspective they do not cover.",
+      "next_step": "Combine the field's own methods with user studies and stakeholder interviews on how the systems are adopted, trusted and governed",
+      "design": "Interdisciplinary project",
+      "timeline": "1–3 years",
+      "feasibility": "Medium",
+      "feasibility_reason": "depends on finding collaborators and a shared research question",
+      "basis": "Phase 2 field"
+    }
+  ],
+  "quality_checks": [
+    {
+      "name": "Not verbatim",
+      "passed": false,
+      "detail": "6% of 6-word phrases occur in Phases 1-3 or the papers (limit 10%); longest shared run 24 words (from the methodology) (limit 14)"
+    },
+    {
+      "name": "Citations",
+      "passed": true,
+      "detail": "every citation is to a reviewed paper and every paper is cited"
+    },
+    {
+      "name": "Draws on Phases 1-3",
+      "passed": true,
+      "detail": "names the review's gaps, the proposed design and every shared finding"
+    },
+    {
+      "name": "Sections",
+      "passed": true,
+      "detail": "all sections present"
+    },
+    {
+      "name": "Future directions",
+      "passed": true,
+      "detail": "9 directions in 4 of 4 categories, each with a next step, timeline and feasibility"
+    },
+    {
+      "name": "Markers",
+      "passed": true,
+      "detail": "3 of 3 kinds of marker placed"
+    },
+    {
+      "name": "Length",
+      "passed": true,
+      "detail": "the Conclusion proper has 641 words (expected 350-1600)"
+    }
+  ]
+}
