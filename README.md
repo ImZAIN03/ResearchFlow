@@ -473,3 +473,53 @@ voice once your results are in, and check every claim against the papers.
 
 The tests (Phases 2 to 4) run on the cyber-warfare and machine-learning outputs in `output/`:
 `pip install pytest` and then `python -m pytest tests`.
+
+---
+
+# Research Accelerator (`src/ra`)
+
+A free, local tool that takes a topic and writes a **sourced draft skeleton** plus candidate research directions. It is **not a submission-ready thesis**.
+
+## Install
+```
+pip install requests
+pip install sentence-transformers   # optional, better ranking
+pip install pytest                  # to run tests
+```
+No API keys. Runs on an 8 GB laptop.
+
+## Run
+```
+python -m src.ra.cli "your topic" --max-papers 10 [--model llama3.2]
+```
+`--model` (optional) names a local Ollama model that may rewrite one sentence at a time. A rewrite is kept only if it keeps the same citation and at least 70% of its content words come from the source quote. Otherwise the verbatim quote stays. Without `--model` no model is used.
+
+Outputs in `output/`: `<slug>-thesis-draft.md`, `-references.md`, `-directions.md`, `-readiness.md`, `-scan.json`.
+
+## What it does
+- Searches free, keyless sources, caches every response in `data/cache/`, and deduplicates by title and year.
+- Splits abstracts into sentences, rejects boilerplate and table-of-contents text (every rejection is logged in the scan), and classifies the rest.
+- Keeps the top 3 finding sentences per paper, each verified word for word against its abstract.
+- Collects limitation and future-work sentences with their citation. Ranks candidate directions by how many papers mention them, how recent they are, and how few papers a fresh search finds.
+- Builds the thesis outline. Every drafted line carries a citation and the `[AI-DRAFT: verify and rewrite]` label.
+- Writes a readiness report listing every blank you must fill and every item needing review.
+
+## What it does not do
+It does not write Results, Discussion, your methodology choices, or your contribution. It does not confirm that a gap is new. It does not read full texts.
+
+## Sources
+arXiv, OpenAlex, Semantic Scholar, Crossref, PubMed (medical topics only), Wikipedia and Wikidata (background only, never evidence).
+
+## Limits
+- Free sources only. Paywalled papers give abstracts only, and some have none.
+- Small local models write poorly. The default output is verbatim quotes.
+- Match counts come from a capped keyword search. **A human must verify novelty.**
+- Rate limits: the tool pauses between calls. Semantic Scholar may throttle you; rerun and cached results are reused.
+
+## Benchmark
+```
+python -m src.ra.bench <slug>
+```
+Reports (a) the share of quotes matching their abstract exactly, (b) paper and gap counts, and (c) writes `output/<slug>-gap-labels.csv`. Label each gap `real`, `weak`, or `wrong`, run the command again, and it prints precision (real / labelled).
+
+Tests: `pytest tests/test_ra.py`
